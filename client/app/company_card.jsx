@@ -1,11 +1,14 @@
 var CompanyCard = React.createClass({
   toggleCompanyDetailOverlay: function() {
-    console.log("toggle")
+    //console.log("toggle")
     this.props.toggleCompanyDetailOverlay(this.props)
   },
 
+  componentDidMount: function() {
+  },
+
   render: function() {
-    console.log(this.props)
+    company_info = JSON.parse(this.props.company_info)
     return (
       <div className="" 
             onClick={this.toggleCompanyDetailOverlay}>
@@ -15,7 +18,7 @@ var CompanyCard = React.createClass({
                     <td>
                      <a href="javascript:" className="thumbnail" 
                         style={{height:55,width:55,marginRight:15,float:"left",marginBottom:0}}>
-                        <img src={this.props.trigger.company_info.logo} alt="..."/>
+                        <img src={company_info.logo} alt="..."/>
                       </a>
                     </td>
                     <td style={{padding:5,width:"35%"}}>
@@ -24,11 +27,11 @@ var CompanyCard = React.createClass({
                         {this.props.trigger.company_name}</h5>
                       </a>
                       <div className="ellipsis" style={{width:300,fontSize:10}}>
-                        {this.props.trigger.company_info.description}
+                        {company_info.description}
                       </div>
                     </td>
 
-                    <HiringSignalInfo />
+                    <HiringSignalInfo trigger={this.props.trigger}/>
                     <EmployeeInfo employees={this.props.employees}/>
 
 
@@ -57,7 +60,7 @@ var HiringSignalInfo = React.createClass({
       <td style={{padding:5,width:"35%"}}>
         <h5></h5>
         <h5><small>Tweeted out this workd blah blah</small></h5>
-        <DetailLabel text={"INDEED"} />
+        <DetailLabel text={this.props.trigger.source.toUpperCase()} />
         <DetailLabel text={"HIRING SIGNAL"} />
       </td>
     )

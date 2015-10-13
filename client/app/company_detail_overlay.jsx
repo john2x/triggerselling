@@ -25,7 +25,7 @@ var CompanyDetailOverlay = React.createClass({
         </div>
     })
     return (
-      <div>
+      <div style={{position:"fixed",top:0,width:"100%",width:"100%"}}>
         <div style={{height:"100%",width:"100%",position:"absolute",top:0,left:0,backgroundColor:"rgba(255,255,255,0.7)",zIndex:1}} 
             onClick={this.toggleCompanyDetailOverlay}>
         <a href="javascript:" className="btn btn-lg">

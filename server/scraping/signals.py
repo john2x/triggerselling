@@ -106,7 +106,6 @@ class Signals:
 
             print "DEPLOYBOT"
             if 'HiringProfile' in _profile: 
-                print "started"
                 q.enqueue(Signals()._hiring, profile, timeout=6000)
             elif 'PressProfile' in _profile:
                 q.enqueue(Press()._daily_collect, profile, timeout=6000)

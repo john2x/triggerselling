@@ -5,6 +5,7 @@ var UserDatasetTable = require("user_dataset_table")
 var ProfileSidebar = require("profile_sidebar")
 var TriggerList = require("trigger_list")
 var CreateTriggerModal = require("create_trigger_modal")
+var WebsocketListener = require("websocket_listener")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -13,6 +14,7 @@ var MenuItem= ReactBootstrap.SplitButton
 var Modal= ReactBootstrap.Modal
 var Button = ReactBootstrap.Button
 var Thumbnail= ReactBootstrap.Thumbnail
+var Alert = ReactBootstrap.Alert
 
 var Route = ReactRouter.Route;
 var RouteHandler = ReactRouter.RouteHandler;
@@ -235,7 +237,7 @@ var Main = React.createClass({
       profiles:[],
       triggers:[],
       triggerEmployees: {},
-      detailMode: true,
+      detailMode: false,
       currentCompany: {}
     }
   },
@@ -253,7 +255,7 @@ var Main = React.createClass({
   componentWillMount: function() {
     var _this = this;
     $.ajax({
-      url: "http://localhost:5000/profiles",
+      url: location.origin+"/profiles",
       dataType:"json",
       success: function(res) {
         console.log(res)
@@ -265,7 +267,7 @@ var Main = React.createClass({
     })
 
     $.ajax({
-      url: "http://localhost:5000/triggers",
+      url: location.origin+"/triggers",
       dataType:"json",
       success: function(res) {
         console.log(res)
@@ -273,11 +275,27 @@ var Main = React.createClass({
 
         _.map(_this.state.triggers, function(trig) {
           $.ajax({
-            url:"http://localhost:5000/company/"+trig.company_key+"/employees",
+            url: location.origin+"/company/"+trig.company_key+"/employees",
             triggerId: trig.company_key,
             dataType:"json",
             success: function(res) {
               triggerId = this.triggerId+"_employees"
+              //console.log(triggerId)
+              //console.log(res)
+              //_this.setState({triggerId: res})
+              localStorage[triggerId] = JSON.stringify(res)
+            },
+            error: function(err) {
+              console.log(err)
+            }
+          })
+
+          $.ajax({
+            url: location.origin+"/companies/"+trig.domain,
+            triggerId: trig.company_key,
+            //dataType:"json",
+            success: function(res) {
+              triggerId = this.triggerId+"_company_info"
               //console.log(triggerId)
               //console.log(res)
               //_this.setState({triggerId: res})
@@ -300,20 +318,28 @@ var Main = React.createClass({
 
   render: function() {
     var _this = this;
-    console.log(this.state)
+    //console.log(this.state)
     CompanyCards = _.map(this.state.triggers, function(trig) {
       employeeId = trig.company_key+"_employees"
-      console.log(localStorage.employeeId)
+      companyInfoId = trig.company_key+"_company_info"
+      //console.log(localStorage.employeeId)
       if(localStorage[employeeId])
         emps = (localStorage[employeeId] != "") ? JSON.parse(localStorage[employeeId]) : []
       else
         emps = []
 
+      if(localStorage[companyInfoId])
+        company_info = (localStorage[companyInfoId] != "") ? JSON.parse(localStorage[companyInfoId]) : []
+      else
+        company_info = []
+
         return <CompanyCard trigger={trig} 
                       toggleCompanyDetailOverlay={_this.toggleCompanyDetailOverlay}
+                          company_info={company_info}
                           employees={emps}/>
     })
     return (
+      <div>
       <div className="container"> <br/>
         <div className = "row">
           <ProfileSidebar 
@@ -321,16 +347,22 @@ var Main = React.createClass({
               lol={"yoyo"}
               toggleCreateTrigerModal={this.toggleCreateTriggerModal}/>
           <div className="col-md-10" style={{paddingLeft:30}}>
-            <div style={{display:"block",marginLeft:"auto",marginRight:100,textAlign:"center",marginTop:8}}>
+            <div style={{display:"block",marginLeft:"auto",marginRight:100,
+                         textAlign:"center",marginTop:8}}>
               <span style={{fontWeight:"800"}}>TODAY </span>
-              <span style={{color:"#bbb"}}>August 28th</span>
+              <span style={{color:"#bbb"}}>{moment().format("MMMM Do")}</span>
             </div>
+
+            <WebsocketListener />
             <a href="javascript:" className="btn btn-success" style={{float:"right",marginTop:-90,display:"none"}}>Create Trigger</a>
-            <a href="javascript:" className="btn btn-default btn-xs" style={{float:"right",marginTop:-25}}>List View</a>
             <br/>
             {CompanyCards}
+            <br/>
+            {(CompanyCards.length) ? <div style={{textAlign:"center"}}><a href="javascript:" className="btn btn-primary btn-sm">LOAD MORE</a></div> : ""}
+            <br/>
           </div>
         </div>
+      </div>
         <CreateTriggerModal 
             showModal={this.state.showCreateTriggerModal}
             closeModal={this.toggleCreateTriggerModal}/>

@@ -134,12 +134,15 @@ module.exports = CheckboxGroup
 ;require.register("company_card", function(exports, require, module) {
 var CompanyCard = React.createClass({displayName: 'CompanyCard',
   toggleCompanyDetailOverlay: function() {
-    console.log("toggle")
+    //console.log("toggle")
     this.props.toggleCompanyDetailOverlay(this.props)
   },
 
+  componentDidMount: function() {
+  },
+
   render: function() {
-    console.log(this.props)
+    company_info = JSON.parse(this.props.company_info)
     return (
       React.createElement("div", {className: "", 
             onClick: this.toggleCompanyDetailOverlay}, 
@@ -149,7 +152,7 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
                     React.createElement("td", null, 
                      React.createElement("a", {href: "javascript:", className: "thumbnail", 
                         style: {height:55,width:55,marginRight:15,float:"left",marginBottom:0}}, 
-                        React.createElement("img", {src: this.props.trigger.company_info.logo, alt: "..."})
+                        React.createElement("img", {src: company_info.logo, alt: "..."})
                       )
                     ), 
                     React.createElement("td", {style: {padding:5,width:"35%"}}, 
@@ -158,11 +161,11 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
                         this.props.trigger.company_name)
                       ), 
                       React.createElement("div", {className: "ellipsis", style: {width:300,fontSize:10}}, 
-                        this.props.trigger.company_info.description
+                        company_info.description
                       )
                     ), 
 
-                    React.createElement(HiringSignalInfo, null), 
+                    React.createElement(HiringSignalInfo, {trigger: this.props.trigger}), 
                     React.createElement(EmployeeInfo, {employees: this.props.employees}), 
 
 
@@ -191,7 +194,7 @@ var HiringSignalInfo = React.createClass({displayName: 'HiringSignalInfo',
       React.createElement("td", {style: {padding:5,width:"35%"}}, 
         React.createElement("h5", null), 
         React.createElement("h5", null, React.createElement("small", null, "Tweeted out this workd blah blah")), 
-        React.createElement(DetailLabel, {text: "INDEED"}), 
+        React.createElement(DetailLabel, {text: this.props.trigger.source.toUpperCase()}), 
         React.createElement(DetailLabel, {text: "HIRING SIGNAL"})
       )
     )
@@ -263,7 +266,7 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
         )
     })
     return (
-      React.createElement("div", null, 
+      React.createElement("div", {style: {position:"fixed",top:0,width:"100%",width:"100%"}}, 
         React.createElement("div", {style: {height:"100%",width:"100%",position:"absolute",top:0,left:0,backgroundColor:"rgba(255,255,255,0.7)",zIndex:1}, 
             onClick: this.toggleCompanyDetailOverlay}, 
         React.createElement("a", {href: "javascript:", className: "btn btn-lg"}, 
@@ -440,23 +443,29 @@ require.register("profile_sidebar", function(exports, require, module) {
 var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
 
   toggleCreateTriggerModal: function() {
-    console.log(this.props)
+    console.log(this.props.profiles)
     this.props.toggleCreateTriggerModal()
   },
 
   render: function() {
-    //console.log(this.props)
+    console.log(this.props.profiles)
+    profiles = _.map(this.props.profiles, function(profile) {
+      return React.createElement(HiringProfileCard, {profile: profile})
+    })
     return (
           React.createElement("div", {className: "col-md-2"}, 
             React.createElement("span", {style: {fontWeight:"800"}}, "TRIGGERS",  
-              React.createElement("span", {style: {color:"#bbb",marginLeft:10,fontWeight:200}}, "(18) ")
+              React.createElement("span", {style: {color:"#bbb",marginLeft:10,fontWeight:200}}, "(", this.props.profiles.length, ") ")
             ), 
 
             React.createElement("a", {href: "javascript:", 
                className: "btn btn-success btn-xs", 
                onClick: this.toggleCreateTriggerModal, 
                style: {float:"right"}}, 
-              React.createElement("i", {className: "fa fa-plus"}))
+              React.createElement("i", {className: "fa fa-plus"})), 
+            React.createElement("hr", null), 
+
+            profiles
           )
       
     )
@@ -465,11 +474,24 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
 
 var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
   render: function() {
+    console.log(this.props.profile)
+    roles = _.map(this.props.profile.profiles[0], function(prof) {
+      return React.createElement("span", null)
+    })
     return (
       React.createElement("div", {style: {cursor:"pointer"}}, 
-        React.createElement("h5", null, " ", React.createElement("i", {className: "fa fa-suitcase"}), " " + ' ' +
-          "Hiring Trigger Name"), 
-        React.createElement("h5", null, React.createElement("small", null, "Company Info blah blah")), 
+        React.createElement("h5", null, 
+          this.props.profile.name), 
+        React.createElement("h5", {style: {marginBottom:0,marginTop:5}}, 
+          React.createElement("small", null, 
+          React.createElement("i", {className: "fa fa-suitcase", style: {width:15}}), "  ", 
+            this.props.profile.profiles[0].roles.join(", "))
+        ), 
+        React.createElement("h5", {style: {marginBottom:0,marginTop:2}}, 
+          React.createElement("small", null, 
+          React.createElement("i", {className: "fa fa-map-marker", style: {width:15}}), "  ", 
+            this.props.profile.profiles[0].locales.join(", "))
+        ), 
         React.createElement("hr", null)
       )
     )
@@ -550,6 +572,7 @@ var UserDatasetTable = require("user_dataset_table")
 var ProfileSidebar = require("profile_sidebar")
 var TriggerList = require("trigger_list")
 var CreateTriggerModal = require("create_trigger_modal")
+var WebsocketListener = require("websocket_listener")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -558,6 +581,7 @@ var MenuItem= ReactBootstrap.SplitButton
 var Modal= ReactBootstrap.Modal
 var Button = ReactBootstrap.Button
 var Thumbnail= ReactBootstrap.Thumbnail
+var Alert = ReactBootstrap.Alert
 
 var Route = ReactRouter.Route;
 var RouteHandler = ReactRouter.RouteHandler;
@@ -780,7 +804,7 @@ var Main = React.createClass({displayName: 'Main',
       profiles:[],
       triggers:[],
       triggerEmployees: {},
-      detailMode: true,
+      detailMode: false,
       currentCompany: {}
     }
   },
@@ -798,7 +822,7 @@ var Main = React.createClass({displayName: 'Main',
   componentWillMount: function() {
     var _this = this;
     $.ajax({
-      url: "http://localhost:5000/profiles",
+      url: location.origin+"/profiles",
       dataType:"json",
       success: function(res) {
         console.log(res)
@@ -810,7 +834,7 @@ var Main = React.createClass({displayName: 'Main',
     })
 
     $.ajax({
-      url: "http://localhost:5000/triggers",
+      url: location.origin+"/triggers",
       dataType:"json",
       success: function(res) {
         console.log(res)
@@ -818,11 +842,27 @@ var Main = React.createClass({displayName: 'Main',
 
         _.map(_this.state.triggers, function(trig) {
           $.ajax({
-            url:"http://localhost:5000/company/"+trig.company_key+"/employees",
+            url: location.origin+"/company/"+trig.company_key+"/employees",
             triggerId: trig.company_key,
             dataType:"json",
             success: function(res) {
               triggerId = this.triggerId+"_employees"
+              //console.log(triggerId)
+              //console.log(res)
+              //_this.setState({triggerId: res})
+              localStorage[triggerId] = JSON.stringify(res)
+            },
+            error: function(err) {
+              console.log(err)
+            }
+          })
+
+          $.ajax({
+            url: location.origin+"/companies/"+trig.domain,
+            triggerId: trig.company_key,
+            //dataType:"json",
+            success: function(res) {
+              triggerId = this.triggerId+"_company_info"
               //console.log(triggerId)
               //console.log(res)
               //_this.setState({triggerId: res})
@@ -845,20 +885,28 @@ var Main = React.createClass({displayName: 'Main',
 
   render: function() {
     var _this = this;
-    console.log(this.state)
+    //console.log(this.state)
     CompanyCards = _.map(this.state.triggers, function(trig) {
       employeeId = trig.company_key+"_employees"
-      console.log(localStorage.employeeId)
+      companyInfoId = trig.company_key+"_company_info"
+      //console.log(localStorage.employeeId)
       if(localStorage[employeeId])
         emps = (localStorage[employeeId] != "") ? JSON.parse(localStorage[employeeId]) : []
       else
         emps = []
 
+      if(localStorage[companyInfoId])
+        company_info = (localStorage[companyInfoId] != "") ? JSON.parse(localStorage[companyInfoId]) : []
+      else
+        company_info = []
+
         return React.createElement(CompanyCard, {trigger: trig, 
                       toggleCompanyDetailOverlay: _this.toggleCompanyDetailOverlay, 
+                          company_info: company_info, 
                           employees: emps})
     })
     return (
+      React.createElement("div", null, 
       React.createElement("div", {className: "container"}, " ", React.createElement("br", null), 
         React.createElement("div", {className: "row"}, 
           React.createElement(ProfileSidebar, {
@@ -866,16 +914,22 @@ var Main = React.createClass({displayName: 'Main',
               lol: "yoyo", 
               toggleCreateTrigerModal: this.toggleCreateTriggerModal}), 
           React.createElement("div", {className: "col-md-10", style: {paddingLeft:30}}, 
-            React.createElement("div", {style: {display:"block",marginLeft:"auto",marginRight:100,textAlign:"center",marginTop:8}}, 
+            React.createElement("div", {style: {display:"block",marginLeft:"auto",marginRight:100,
+                         textAlign:"center",marginTop:8}}, 
               React.createElement("span", {style: {fontWeight:"800"}}, "TODAY "), 
-              React.createElement("span", {style: {color:"#bbb"}}, "August 28th")
+              React.createElement("span", {style: {color:"#bbb"}}, moment().format("MMMM Do"))
             ), 
+
+            React.createElement(WebsocketListener, null), 
             React.createElement("a", {href: "javascript:", className: "btn btn-success", style: {float:"right",marginTop:-90,display:"none"}}, "Create Trigger"), 
-            React.createElement("a", {href: "javascript:", className: "btn btn-default btn-xs", style: {float:"right",marginTop:-25}}, "List View"), 
             React.createElement("br", null), 
-            CompanyCards
+            CompanyCards, 
+            React.createElement("br", null), 
+            (CompanyCards.length) ? React.createElement("div", {style: {textAlign:"center"}}, React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-sm"}, "LOAD MORE")) : "", 
+            React.createElement("br", null)
           )
-        ), 
+        )
+      ), 
         React.createElement(CreateTriggerModal, {
             showModal: this.state.showCreateTriggerModal, 
             closeModal: this.toggleCreateTriggerModal}), 
@@ -1111,5 +1165,56 @@ module.exports = UserDatasetTable;
 
 });
 
+require.register("websocket_listener", function(exports, require, module) {
+var _SockJS = {
+  start: function() {
+    console.log("start")
+  }
+}
 
+    var sockJS = new SockJS("http://127.0.0.1:8988/sockjs"),
+                        userId = 0,
+                        users = {};
+
+var WebsocketListener = React.createClass({displayName: 'WebsocketListener',
+  componentDidMount: function() {
+    //SockJS.start()
+    var sockJS = new SockJS("http://127.0.0.1:8988/sockjs"),
+                        userId = 0,
+                        users = {};
+
+    sockJS.onopen = function() {
+        console.log("connected")
+    }
+
+    sockJS.onmessage = function(event) {
+      event.data = JSON.parse(event.data);
+      console.log(event)
+      var msg = event.data.msg,
+          user = event.data.user,
+          el;
+    }
+
+    sockJS.onclose = function() {
+      console.log("on close")
+    };
+  },
+
+  render: function() {
+    return (
+      React.createElement("div", {className: "alert alert-info", 
+           style: {textAlign:"center",marginTop:10,cursor:"pointer"}}, 
+        React.createElement("a", {href: "javascript:", className: "btn btn-default btn-xs", style: {float:"right",marginTop:-45}}, "List View"), 
+        React.createElement("strong", null, "36 new prospects found"), "   " + ' ' +
+            "Click this here to load!"
+      )
+    )
+  }
+})
+
+module.exports = WebsocketListener
+
+});
+
+;
 //# sourceMappingURL=app.js.map

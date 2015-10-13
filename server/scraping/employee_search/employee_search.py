@@ -131,7 +131,7 @@ class GoogleEmployeeSearch:
         """
         return results
 
-    def _update_record(self, company_name, keyword, _id):
+    def _update_employee_record(self, company_name,  _id, keyword=""):
         res = self._employees(company_name, keyword, _id)
         print "EMPLOYEES FOUND", company_name, res.shape
         conn = r.connect(host="localhost", port=28015, db="triggeriq")

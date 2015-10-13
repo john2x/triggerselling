@@ -33,11 +33,13 @@ class EmailHunter:
         return e.shape[0]
 
     def _update_record(self, domain, _id):
+        print "EMAIL HUNTER UPDATE RECORD"
         url = "http://api.emailhunter.co/v1/search?domain={0}&api_key=0191b3bdcf20b25b778da18bca995911cec0f630"
         url = url.format(domain)
         # if emails found return
         html = requests.get(url).text
         res = json.loads(html)
+        print res.keys()
         if "pattern" in res.keys():
           del res["emails"]
           conn = r.connect(host="localhost", port=28015, db="triggeriq")

@@ -13,7 +13,9 @@ import rethinkdb as r
 clearbit.key = 'dc80f4192b73cca928f4e7c284b46573'
 from rq import Queue
 from worker import conn as _conn
-q = Queue(connection=_conn)
+q = Queue("low", connection=_conn)
+dq = Queue("default", connection=_conn)
+hq = Queue("high", connection=_conn)
 
 class ClearbitSearch:
   def _company_profile(self, company_name, api_key=""):
@@ -35,35 +37,39 @@ class ClearbitSearch:
   def _update_company_record(self, domain, _id):
       print "UPDATE COMPANY RECORD"
       conn = r.connect(host="localhost", port=28015, db="triggeriq")
-      company = [i for i in r.table('companies').filter({"domain":domain}).run(conn)]
+      company= [i for i in r.table('companies').filter({"domain":domain}).run(conn)]
+      print "COMPANY FOUND"
       if not company:
           company = clearbit.Company.find(domain=domain, stream=True)
           company = company if company else {}
-          r.table('companies').insert(company)
-      #print r.table('triggers').filter({"company_key":_id}).update({"company_info":company}, return_changes=True).run(conn)
-      # TODO update company
+          r.table('companies').insert(company).run(conn)
+      else:
+          result = "found"
+
+      data = {"company_domain_research_completed":r.now(), 
+              "company_domain_research_result": result}
+      r.table('triggers').get(_id).update(data).run(conn)
 
   def _update_person_record(self, email, _id):
-      print email
-      company = clearbit.Person.find(email=email, stream=True)
-      company = company if company else None
+      data = {"social_info": None, "email":email}
+      person = clearbit.Person.find(email=email, stream=True)
+      if person:
+         data["social_info"] = person
       conn = r.connect(host="localhost", port=28015, db="triggeriq")
-      #r.table('company_employees').get(_id).update({"social_info": company}).run(conn)
-      r.table('company_employees').get(_id).update({"social_info": company}).run(conn)
+      r.table('company_employees').get(_id).update(data).run(conn)
 
   def _bulk_update_employee_record(self, _id, pattern, domain):
       conn = r.connect(host="localhost", port=28015, db="triggeriq")
-      #print _id
-      _id = "eab41007-6b8c-11e5-b7e1-7831c1d137aa"
+      #_id = "eab41007-6b8c-11e5-b7e1-7831c1d137aa"
       employees = r.table("company_employees").filter({"company_id":_id}).run(conn)
       print employees
       for person in employees:
           #pattern = change["new_val"]["email_pattern"]
-          _data = {"first":person["name"].split(" ")[0], 
-                   "last":person["name"].split(" ")[-1]}
+          _data = {"first":person["name"].split(" ")[0].lower(), 
+                   "last":person["name"].split(" ")[-1].lower()}
           email = pattern.format(**_data)+"@"+domain
           print email, person["id"]
-          q.enqueue(ClearbitSearch()._update_person_record, email, person["id"])
+          hq.enqueue(ClearbitSearch()._update_person_record, email, person["id"])
 
   def _company_search(self, domain):
     company = clearbit.Company.find(domain=domain, stream=True)

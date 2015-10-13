@@ -24,17 +24,35 @@ high_q = Queue("high", connection=_conn)
 
 conn = r.connect(host="localhost", port=28015, db="triggeriq")
 app = Flask(__name__, static_url_path="", static_folder="client")
-#app.debug = True
+app.debug = True
 
-#TODO 
-# - login
-# - logout
-# - make it work in dokku
-# - deploy from brunch to flask app
+# TODO 
+# - real time web socket trigger for new results that come in the background
+# - company research stats
+# - create a table to address speed of researches
+# - company name to domain still returns errors
+#
+# - make sure that the endpoints return same stuff every time 
+# - make create / delete / edit  signal modal work
+# - auth
+# - newrelic figure out which python process is so CPU intensive
+#
+# - press signals
+# - twitter signals
+#
+# - integrations
+# - onboarding modal
 
 @app.route("/test_1")
 def test_1():
     return "test_4"
+
+@app.route("/domain/<company_name>")
+def company_name_to_domain(company_name):
+    data = CompanyNameToDomain().get(company_name)
+    print data
+    return make_response(json.dumps(data))
+  
 
 @app.route("/company_research")
 def company_research():
@@ -52,12 +70,10 @@ def trigger_research():
   triggers = r.table("triggers").coerce_to("array").run(conn)
 
   for val in triggers:
-      q.enqueue(CompanyNameToDomain()._update_record, 
+      q.enqueue(CompanyNameToDomain()._update_company_record, 
                 val["company_name"], val["company_key"])
-      """
-      q.enqueue(GoogleEmployeeSearch()._update_record, 
+      q.enqueue(GoogleEmployeeSearch()._update_employee_record, 
                 val["company_name"], "", val["company_key"])
-      """
   return make_response(json.dumps({"started":True}))
   #return "Hello from python"
 
@@ -110,12 +126,15 @@ def profile_companies():
 @app.route("/triggers")
 @crossdomain(origin='*')
 def triggers():
-    # include profile
     #data = r.table("triggers").limit(50).coerce_to("array").run(conn)
     data = r.table("triggers").eq_join("profile", 
            r.table("prospect_profiles")).coerce_to("array").zip().run(conn)
-    data = pd.DataFrame(data)
-    data = data[data.company_info.notnull()].to_dict("r")[:5]
+    data = pd.DataFrame(data).dropna()
+    data = data[[i for i in data.columns 
+                 if "company_domain_research" not in i]]
+    # TODO 
+    # load triggers with completed domain research
+    data = data[data.domain.notnull()].to_dict("r")[:50]
     return make_response(json.dumps(data))
 
 @app.route("/profiles/<_id>")
@@ -125,10 +144,19 @@ def profile_id(_id):
     return make_response(json.dumps(data))
 
 @app.route("/company/<_id>")
-@crossdomain(origin='*')
 def company_id(_id):
     data = r.table("triggers").get(_id).coerce_to("array").run(conn)
     #return render_template('landing_page.html')
+    return make_response(json.dumps(data))
+
+@app.route("/companies/<domain>")
+@crossdomain(origin='*')
+def company_info(domain):
+    data = r.table("companies").filter({"domain":domain}).run(conn)
+    try:
+      data = list(data)[0]
+    except:
+      data = {}
     return make_response(json.dumps(data))
 
 @app.route("/company/<_id>/employees")
@@ -175,5 +203,5 @@ def company_employees(_id):
 
 #login_manager.init_app(app)
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host='0.0.0.0', port=8000)

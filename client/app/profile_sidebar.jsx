@@ -1,16 +1,19 @@
 var ProfileSidebar = React.createClass({
 
   toggleCreateTriggerModal: function() {
-    console.log(this.props)
+    console.log(this.props.profiles)
     this.props.toggleCreateTriggerModal()
   },
 
   render: function() {
-    //console.log(this.props)
+    console.log(this.props.profiles)
+    profiles = _.map(this.props.profiles, function(profile) {
+      return <HiringProfileCard profile={profile}/>
+    })
     return (
           <div className="col-md-2">
             <span style={{fontWeight:"800"}}>TRIGGERS 
-              <span style={{color:"#bbb",marginLeft:10,fontWeight:200}}>(18) </span>
+              <span style={{color:"#bbb",marginLeft:10,fontWeight:200}}>({this.props.profiles.length}) </span>
             </span>
 
             <a href="javascript:" 
@@ -18,6 +21,9 @@ var ProfileSidebar = React.createClass({
                onClick={this.toggleCreateTriggerModal}
                style={{float:"right"}}>
               <i className="fa fa-plus"/></a>
+            <hr/>
+
+            {profiles}
           </div>
       
     )
@@ -26,11 +32,24 @@ var ProfileSidebar = React.createClass({
 
 var HiringProfileCard = React.createClass({
   render: function() {
+    console.log(this.props.profile)
+    roles = _.map(this.props.profile.profiles[0], function(prof) {
+      return <span></span>
+    })
     return (
       <div style={{cursor:"pointer"}}>
-        <h5> <i className="fa fa-suitcase" />&nbsp;
-          Hiring Trigger Name</h5>
-        <h5><small>Company Info blah blah</small></h5>
+        <h5>
+          {this.props.profile.name}</h5>
+        <h5 style={{marginBottom:0,marginTop:5}}>
+          <small>
+          <i className="fa fa-suitcase" style={{width:15}}/> &nbsp;
+            {this.props.profile.profiles[0].roles.join(", ")}</small>
+        </h5>
+        <h5 style={{marginBottom:0,marginTop:2}}>
+          <small>
+          <i className="fa fa-map-marker" style={{width:15}}/> &nbsp;
+            {this.props.profile.profiles[0].locales.join(", ")}</small>
+        </h5>
         <hr/>
       </div>
     )
