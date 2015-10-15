@@ -61,6 +61,7 @@ def trigger_changes():
             a = [change["new_val"]["company_name"], change["new_val"]["company_key"]]
             q.enqueue(CompanyNameToDomain()._update_company_record, change["new_val"]["company_name"],change["new_val"]["company_key"])
             q.enqueue(GoogleEmployeeSearch()._update_employee_record, *a)
+
         if "domain" in change["new_val"]:
             #if change["old_val"] == None or "domain" not in change["old_val"]:
             print "SECOND TIME ROUND"

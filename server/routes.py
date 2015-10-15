@@ -13,6 +13,20 @@ from scraping.company_api.company_name_to_domain import CompanyNameToDomain
 from scraping.email_pattern.email_hunter import EmailHunter
 from scraping.email_pattern.clearbit_search import ClearbitSearch
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
+import logging
+import logging
+import logstash
+import sys
+
+"""
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.INFO)
+log.addHandler(logstash.LogstashHandler(host, 5959, version=1))
+
+test_logger = logging.getLogger('python-logstash-logger')
+test_logger.setLevel(logging.INFO)
+test_logger.addHandler(logstash.LogstashHandler(host, 5959, version=1))
+"""
 
 #login_manager = LoginManager()
 
@@ -45,7 +59,7 @@ app.debug = True
 
 @app.route("/test_1")
 def test_1():
-    return "test_4"
+    return "test_8"
 
 @app.route("/domain/<company_name>")
 def company_name_to_domain(company_name):
@@ -129,12 +143,14 @@ def triggers():
     #data = r.table("triggers").limit(50).coerce_to("array").run(conn)
     data = r.table("triggers").eq_join("profile", 
            r.table("prospect_profiles")).coerce_to("array").zip().run(conn)
+    #data = pd.DataFrame(data)
     data = pd.DataFrame(data).dropna()
     data = data[[i for i in data.columns 
                  if "company_domain_research" not in i]]
     # TODO 
     # load triggers with completed domain research
-    data = data[data.domain.notnull()].to_dict("r")[:50]
+    data = data[data.domain.notnull()].to_dict("r")[:2]
+    print data
     return make_response(json.dumps(data))
 
 @app.route("/profiles/<_id>")
