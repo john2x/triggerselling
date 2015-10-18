@@ -1,6 +1,5 @@
 import os
 from flask import Flask, send_from_directory, render_template, make_response
-#from flask.ext.login import LoginManager, UserMixin, current_user, login_user, logout_user, login_required
 import pandas as pd
 from redis import Redis
 from rq_scheduler import Scheduler
@@ -8,27 +7,12 @@ from datetime import datetime
 from crossdomain import crossdomain
 import rethinkdb as r
 import json
-from flask.ext.responses import json_response, xml_response, auto_response
 from scraping.company_api.company_name_to_domain import CompanyNameToDomain
 from scraping.email_pattern.email_hunter import EmailHunter
 from scraping.email_pattern.clearbit_search import ClearbitSearch
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
 import logging
-import logging
-import logstash
 import sys
-
-"""
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)
-log.addHandler(logstash.LogstashHandler(host, 5959, version=1))
-
-test_logger = logging.getLogger('python-logstash-logger')
-test_logger.setLevel(logging.INFO)
-test_logger.addHandler(logstash.LogstashHandler(host, 5959, version=1))
-"""
-
-#login_manager = LoginManager()
 
 from rq import Queue
 from worker import conn as _conn
@@ -36,17 +20,23 @@ q = Queue("low", connection=_conn)
 default_q = Queue("default", connection=_conn)
 high_q = Queue("high", connection=_conn)
 
-conn = r.connect(host="localhost", port=28015, db="triggeriq")
+conn = r.connect(
+  host='rethinkdb_tunnel',
+  port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+  db=os.environ['RETHINKDB_DB'],
+  auth_key=os.environ['RETHINKDB_AUTH_KEY']
+)
 app = Flask(__name__, static_url_path="", static_folder="client")
-app.debug = True
+if 'DEBUG' in os.environ:
+  app.debug = True
 
-# TODO 
+# TODO
 # - real time web socket trigger for new results that come in the background
 # - company research stats
 # - create a table to address speed of researches
 # - company name to domain still returns errors
 #
-# - make sure that the endpoints return same stuff every time 
+# - make sure that the endpoints return same stuff every time
 # - make create / delete / edit  signal modal work
 # - auth
 # - newrelic figure out which python process is so CPU intensive
@@ -66,7 +56,7 @@ def company_name_to_domain(company_name):
     data = CompanyNameToDomain().get(company_name)
     print data
     return make_response(json.dumps(data))
-  
+
 
 @app.route("/company_research")
 def company_research():
@@ -75,7 +65,7 @@ def company_research():
   for val in triggers:
       if "domain" not in val.keys(): continue
       print val["domain"]
-      q.enqueue(ClearbitSearch()._update_company_record, 
+      q.enqueue(ClearbitSearch()._update_company_record,
                 val["domain"], val["company_key"])
   return make_response(json.dumps({"started":True}))
 
@@ -84,9 +74,9 @@ def trigger_research():
   triggers = r.table("triggers").coerce_to("array").run(conn)
 
   for val in triggers:
-      q.enqueue(CompanyNameToDomain()._update_company_record, 
+      q.enqueue(CompanyNameToDomain()._update_company_record,
                 val["company_name"], val["company_key"])
-      q.enqueue(GoogleEmployeeSearch()._update_employee_record, 
+      q.enqueue(GoogleEmployeeSearch()._update_employee_record,
                 val["company_name"], "", val["company_key"])
   return make_response(json.dumps({"started":True}))
   #return "Hello from python"
@@ -141,13 +131,13 @@ def profile_companies():
 @crossdomain(origin='*')
 def triggers():
     #data = r.table("triggers").limit(50).coerce_to("array").run(conn)
-    data = r.table("triggers").eq_join("profile", 
+    data = r.table("triggers").eq_join("profile",
            r.table("prospect_profiles")).coerce_to("array").zip().run(conn)
     #data = pd.DataFrame(data)
     data = pd.DataFrame(data).dropna()
-    data = data[[i for i in data.columns 
+    data = data[[i for i in data.columns
                  if "company_domain_research" not in i]]
-    # TODO 
+    # TODO
     # load triggers with completed domain research
     data = data[data.domain.notnull()].to_dict("r")[:2]
     print data
@@ -200,24 +190,18 @@ def company_employees(_id):
 # Add Activity Feeds
 # Fan Out Adding To Feeds
 
-# Clearspark 
+# Clearspark
 # => Subscribing to a list of domains
 # => User specific feeds
 
-# TriggerIQ 
-# [press, industry] 
+# TriggerIQ
+# [press, industry]
 # => Subscribing to an event
 
-# [twitter, jobs] 
-# => Subscribing to an event 
-# => do a string match 
-# => and then add to feed 
+# [twitter, jobs]
+# => Subscribing to an event
+# => do a string match
+# => and then add to feed
 
 # TODO
 # Generate Fake Test Data For Schema
-
-
-#login_manager.init_app(app)
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    app.run(host='0.0.0.0', port=8000)

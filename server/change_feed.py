@@ -1,9 +1,10 @@
+import os
 import tornado.ioloop
 import logging
 import tornado.web
 import rethinkdb as r
 from tornado import ioloop, gen
-from schedule import * 
+from schedule import *
 from routes import app
 from scraping.company_api.company_name_to_domain import CompanyNameToDomain
 from scraping.email_pattern.email_hunter import EmailHunter
@@ -30,7 +31,12 @@ hq = Queue("high", connection=_conn)
 #change_feed: python -u change_feed.py
 @gen.coroutine
 def print_changes():
-    rethink_conn = yield r.connect(host="localhost", port=28015, db="triggeriq")
+    rethink_conn = yield r.connect(
+        host='rethinkdb_tunnel',
+        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+        db=os.environ['RETHINKDB_DB'],
+        auth_key=os.environ['RETHINKDB_AUTH_KEY']
+    )
     feed = yield r.table('mytable').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
@@ -39,7 +45,12 @@ def print_changes():
 
 @gen.coroutine
 def email_pattern():
-    rethink_conn = yield r.connect(host="localhost", port=28015, db="triggeriq")
+    rethink_conn = yield r.connect(
+        host='rethinkdb_tunnel',
+        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+        db=os.environ['RETHINKDB_DB'],
+        auth_key=os.environ['RETHINKDB_AUTH_KEY']
+    )
     feed = yield r.table('email_pattern_crawls').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
@@ -50,7 +61,12 @@ def email_pattern():
 
 @gen.coroutine
 def trigger_changes():
-    rethink_conn = yield r.connect(host="localhost", port=28015, db="triggeriq")
+    rethink_conn = yield r.connect(
+        host='rethinkdb_tunnel',
+        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+        db=os.environ['RETHINKDB_DB'],
+        auth_key=os.environ['RETHINKDB_AUTH_KEY']
+    )
     #feed = yield r.table('hiring_signals').changes().run(rethink_conn)
     feed = yield r.table('triggers').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
@@ -71,26 +87,31 @@ def trigger_changes():
             hq.enqueue(EmailHunter()._update_record, *args)
 
             # TODO socket.io integration
-        if "email_pattern" in change["new_val"]: 
+        if "email_pattern" in change["new_val"]:
             print "EMAIL_PATTERN"
             """
             val = change["new_val"]
             a = [val["company_key"], val["email_pattern"]["pattern"], val["domain"]]
             hq.enqueue(ClearbitSearch()._bulk_update_employee_record, *a)
             """
-        
+
 ''' Application Routes '''
 @Route(r"/trigger_research")
 class SimpleHandler(tornado.web.RequestHandler):
     def get(self):
         #self.write("Hello, world")
-        conn = yield r.connect(host="localhost", port=28015, db="triggeriq")
+        conn = yield r.connect(
+            host='rethinkdb_tunnel',
+            port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+            db=os.environ['RETHINKDB_DB'],
+            auth_key=os.environ['RETHINKDB_AUTH_KEY']
+        )
         feed = yield r.table('triggers').changes().run(conn)
         while (yield feed.fetch_next()):
             val = yield feed.next()
-            q.enqueue(CompanyNameToDomain()._update_record, 
+            q.enqueue(CompanyNameToDomain()._update_record,
                       val["company_name"], val["company_key"])
-            q.enqueue(GoogleEmployeeSearch()._update_record, 
+            q.enqueue(GoogleEmployeeSearch()._update_record,
                       val["company_name"], "", val["company_key"])
 
         self.write( {"print":"research"} )
