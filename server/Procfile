@@ -1,7 +1,3 @@
-db: rethinkdb --bind all
-redis: redis-server
 web: python -u routes.py
-change_feed: python -u change_feed.py
 worker: python -u worker.py -c 5
 clock: python -u clock.py
-rq_dashboard: rq-dashboard

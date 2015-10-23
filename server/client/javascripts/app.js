@@ -439,7 +439,161 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-require.register("profile_sidebar", function(exports, require, module) {
+require.register("landing_page", function(exports, require, module) {
+var LandingPage = React.createClass({displayName: 'LandingPage',
+  home: function() {
+    location.href="/#landing"
+  },
+
+  render: function() {
+    return (
+      React.createElement("div", {style: {paddingTop:50}}, 
+
+        React.createElement("h4", {style: {fontWeight:800,fontSize:22,cursor:"pointer"}, 
+          onClick: this.home}, "TriggerIQ"), 
+
+        React.createElement("a", {href: "#pricing", className: "", style: {float:"right",marginTop:-32,marginRight:300,fontWeight:600,fontSize:12,color:"#0072f0"}}, "PRICING"), 
+
+        React.createElement("a", {href: "#login", className: "btn btn-primary", style: {float:"right",marginTop:-40}}, "LOG IN"), 
+        React.createElement("div", {className: "row", style: {marginTop:40}}, 
+        React.createElement("div", {className: "col-md-6"}, 
+          React.createElement("h1", null, "Leverage The Power Of Trigger Based Selling"), 
+          React.createElement("br", null), 
+          React.createElement("hr", null), 
+          React.createElement("h4", {style: {marginTop:10}}, "STOP WASTING YOUR SALES REPS TIME COLD CALLING "), 
+          React.createElement("h4", {style: {marginTop:20,fontStyle:"italic"}}, "START REACHING OUT TO PROSPECTS AT THE RIGHT TIME"), 
+          React.createElement("input", {className: "form-control input-lg", style: {marginTop:30,width:300,borderRadius:2,fontSize:16}, placeholder: "EMAIL"}), 
+          React.createElement("input", {className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "PASSWORD", type: "password"}), 
+          React.createElement("a", {className: "btn btn-lg btn-success", style: {marginTop:10,width:150,fontSize:16}}, "SIGN UP")
+        ), 
+
+        React.createElement("div", {className: "col-md-6"}, 
+          React.createElement("img", {src: "images/radar_2.png", style: {height:500,float:"right"}})
+        )
+        )
+      )
+    )
+  }
+})
+
+
+module.exports = LandingPage
+
+});
+
+;require.register("login", function(exports, require, module) {
+var Login = React.createClass({displayName: 'Login',
+  render: function() {
+    return (
+      React.createElement("div", {style: {textAlign:"center",paddingTop:120}}, 
+
+          React.createElement("img", {src: "images/radar_2.png", style: {height:100}}), 
+          React.createElement("br", null), 
+        React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}, placeholder: "EMAIL"}), 
+        React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginTop:10,marginLeft:"auto",marginRight:"auto",width:300,borderRadius:2}, placeholder: "PASSWORD", type: "password"}), 
+        React.createElement("br", null), 
+        React.createElement("a", {className: "btn btn-lg btn-primary", style: {marginTop:10,width:300, fontSize:16}}, "LOG IN")
+
+      )
+    )
+  }
+})
+
+module.exports = Login
+
+});
+
+;require.register("pricing", function(exports, require, module) {
+var LandingPage = React.createClass({displayName: 'LandingPage',
+  home: function() {
+    location.href="/#landing"
+  },
+
+  render: function() {
+    return (
+      React.createElement("div", {style: {paddingTop:50}}, 
+
+        React.createElement("h4", {style: {fontWeight:800,fontSize:22,cursor:"pointer"}, 
+          onClick: this.home}, "TriggerIQ"), 
+
+        React.createElement("a", {href: "#pricing", className: "", style: {float:"right",marginTop:-32,marginRight:300,fontWeight:600,fontSize:12,color:"#0072f0"}}, "PRICING"), 
+
+
+        React.createElement("a", {href: "#signup", className: "btn btn-success", style: {float:"right",marginTop:-40,marginRight:80}}, "SIGN UP"), 
+        React.createElement("a", {href: "#login", className: "btn btn-primary", style: {float:"right",marginTop:-40}}, "LOG IN"), 
+        React.createElement("div", {className: "row", style: {marginTop:40}}, 
+          React.createElement("div", {className: "col-md-4 col-sm-4 col-xs-4"}, 
+            React.createElement("div", {className: "pricing-col"}, 
+            React.createElement("br", null), 
+            "Starter", 
+            React.createElement("hr", null), 
+            React.createElement("br", null), 
+            React.createElement("h1", null, "$99 ", React.createElement("small", null, "/ month")), 
+            React.createElement("br", null), 
+            React.createElement("hr", null), 
+              "Unlimited Prospect Profiles", 
+            React.createElement("hr", null), 
+              "Unlimited Company Profiles", 
+            React.createElement("hr", null), 
+            React.createElement("br", null), 
+            React.createElement("br", null), 
+            React.createElement("br", null), 
+            React.createElement("br", null), 
+            React.createElement("br", null)
+            )
+          ), 
+          React.createElement("div", {className: "col-md-4 col-sm-4 col-xs-4"}, 
+            React.createElement("div", {className: "pricing-col"}, 
+            React.createElement("br", null), 
+            "Professional", 
+            React.createElement("hr", null), 
+            React.createElement("br", null), 
+            React.createElement("h1", null, "$499 ", React.createElement("small", null, "/ month")), 
+            React.createElement("br", null), 
+            React.createElement("hr", null), 
+              "Unlimited Prospect Profiles", 
+            React.createElement("hr", null), 
+              "Unlimited Company Profiles", 
+            React.createElement("hr", null), 
+              "CRM Integration", 
+            React.createElement("hr", null), 
+              "Employee Search", 
+            React.createElement("br", null), 
+            React.createElement("br", null)
+            )
+          ), 
+          React.createElement("div", {className: "col-md-4 col-sm-4 col-xs-4"}, 
+            React.createElement("div", {className: "pricing-col"}, 
+            React.createElement("br", null), 
+            "Enterprise", 
+            React.createElement("hr", null), 
+            React.createElement("br", null), 
+            React.createElement("h1", null, "$999 ", React.createElement("small", null, "/ month")), 
+            React.createElement("br", null), 
+            React.createElement("hr", null), 
+              "Unlimited Prospect + Company Profiles", 
+            React.createElement("hr", null), 
+              "CRM Integration", 
+            React.createElement("hr", null), 
+              "Employee Search", 
+            React.createElement("hr", null), 
+              "Employee Contact Information", 
+            React.createElement("br", null), 
+            React.createElement("br", null)
+          )
+          )
+        )
+      )
+    )
+  }
+})
+
+
+module.exports = LandingPage
+
+});
+
+;require.register("profile_sidebar", function(exports, require, module) {
 var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
 
   toggleCreateTriggerModal: function() {
@@ -573,6 +727,10 @@ var ProfileSidebar = require("profile_sidebar")
 var TriggerList = require("trigger_list")
 var CreateTriggerModal = require("create_trigger_modal")
 var WebsocketListener = require("websocket_listener")
+var LandingPage = require("landing_page")
+var Pricing = require("pricing")
+var Login = require("login")
+var Signup = require("signup")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -606,7 +764,7 @@ var Navbar = React.createClass({displayName: 'Navbar',
           React.createElement("li", {className: "app-logo"}, 
             React.createElement("div", null, 
             React.createElement("img", {src: "images/blaze-logo.png", style: {marginTop:4,height:18,marginLeft:-15,display:"none"}}), 
-            React.createElement("div", {style: {}, style: {color:"#000",marginLeft:-20}}, " TriggerIQ")
+            React.createElement("div", {style: {}, style: {color:"#000"}}, " TriggerIQ")
             )
           ), 
           React.createElement("div", {style: {display:"none"}}, 
@@ -689,8 +847,7 @@ var App = React.createClass({displayName: 'App',
   render: function() {
     return (
       React.createElement("div", {className: "app"}, 
-        React.createElement("div", {className: "home-page"}, 
-          React.createElement(Navbar, null)
+        React.createElement("div", {className: "home-page"}
         ), 
         React.createElement("div", {className: "container"}, 
         React.createElement(RouteHandler, null)
@@ -907,6 +1064,7 @@ var Main = React.createClass({displayName: 'Main',
     })
     return (
       React.createElement("div", null, 
+          React.createElement(Navbar, null), 
       React.createElement("div", {className: "container"}, " ", React.createElement("br", null), 
         React.createElement("div", {className: "row"}, 
           React.createElement(ProfileSidebar, {
@@ -950,8 +1108,10 @@ var Main = React.createClass({displayName: 'Main',
 var routes = (
   React.createElement(Route, {handler: App}, 
     React.createElement(Route, {path: "", handler: Main}), 
-    React.createElement(Route, {path: "about", handler: About}), 
-    React.createElement(Route, {path: "inbox", handler: Inbox}), 
+    React.createElement(Route, {path: "landing", handler: LandingPage}), 
+    React.createElement(Route, {path: "login", handler: Login}), 
+    React.createElement(Route, {path: "signup", handler: Signup}), 
+    React.createElement(Route, {path: "pricing", handler: Pricing}), 
     React.createElement(Route, {path: "new_dataset", handler: NewDatasetPanel}), 
     React.createElement(Route, {path: "datasets", handler: UserDatasetTable}), 
     React.createElement(Route, {path: "/dataset/:id", handler: DatasetDetail}), 
@@ -984,6 +1144,29 @@ var SearchBar = React.createClass({displayName: 'SearchBar',
 })
 
 module.exports = SearchBar
+
+});
+
+;require.register("signup", function(exports, require, module) {
+var Signup = React.createClass({displayName: 'Signup',
+  render: function() {
+    return (
+      React.createElement("div", {style: {textAlign:"center",paddingTop:120}}, 
+
+          React.createElement("img", {src: "images/radar_2.png", style: {height:100}}), 
+          React.createElement("br", null), 
+        React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}, placeholder: "EMAIL"}), 
+        React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginTop:10,marginLeft:"auto",marginRight:"auto",width:300,borderRadius:2}, placeholder: "PASSWORD", type: "password"}), 
+        React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginTop:10,marginLeft:"auto",marginRight:"auto",width:300,borderRadius:2}, placeholder: "CONFIRM PASSWORD", type: "password"}), 
+        React.createElement("br", null), 
+        React.createElement("a", {className: "btn btn-lg btn-success", style: {marginTop:10,width:300, fontSize:16}}, "SIGN UP")
+
+      )
+    )
+  }
+})
+
+module.exports = Signup
 
 });
 

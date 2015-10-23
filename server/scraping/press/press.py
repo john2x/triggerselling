@@ -198,9 +198,12 @@ class DuplicateCheck:
 class MarketWired:
     def paginate(self, url):
         #browser = Browser("chrome")
+        """
         browser = Browser("phantomjs")
         browser.visit(url)
         pages = [browser.html]
+        """
+        r = requests.get("http://localhost:8950/render.html?", params= {"url":url})
         for i in range(10):
             try:
                 browser.find_by_css(".PagerLinks > a")[-2].click()
@@ -316,10 +319,14 @@ class BusinessWire():
                 
     def _parse_article_html(self, objectId, url, industry_press=None):
         #browser.visit("http://www.businesswire.com/news/home/20150409005073/en")
+        """
         browser = Browser("phantomjs")
         browser.visit(url)
         time.sleep(2)
         html = browser.html
+        """
+        r = requests.get("http://localhost:8950/render.html?", params= {"url":url})
+        html = r.text
 
         #html = requests.get(url).text
         html = BeautifulSoup(html)

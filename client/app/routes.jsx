@@ -6,6 +6,10 @@ var ProfileSidebar = require("profile_sidebar")
 var TriggerList = require("trigger_list")
 var CreateTriggerModal = require("create_trigger_modal")
 var WebsocketListener = require("websocket_listener")
+var LandingPage = require("landing_page")
+var Pricing = require("pricing")
+var Login = require("login")
+var Signup = require("signup")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -39,7 +43,7 @@ var Navbar = React.createClass({
           <li className="app-logo">
             <div>
             <img src="images/blaze-logo.png" style={{marginTop:4,height:18,marginLeft:-15,display:"none"}}/>
-            <div style={{}} style={{color:"#000",marginLeft:-20}}> TriggerIQ</div>
+            <div style={{}} style={{color:"#000"}}> TriggerIQ</div>
             </div>
           </li>
           <div style={{display:"none"}}>
@@ -123,7 +127,6 @@ var App = React.createClass({
     return (
       <div className="app" >
         <div className="home-page">
-          <Navbar />
         </div>
         <div className="container">
         <RouteHandler/>
@@ -340,6 +343,7 @@ var Main = React.createClass({
     })
     return (
       <div>
+          <Navbar />
       <div className="container"> <br/>
         <div className = "row">
           <ProfileSidebar 
@@ -383,8 +387,10 @@ var Main = React.createClass({
 var routes = (
   <Route handler={App}>
     <Route path="" handler={Main}/>
-    <Route path="about" handler={About}/>
-    <Route path="inbox" handler={Inbox}/>
+    <Route path="landing" handler={LandingPage}/>
+    <Route path="login" handler={Login}/>
+    <Route path="signup" handler={Signup}/>
+    <Route path="pricing" handler={Pricing}/>
     <Route path="new_dataset" handler={NewDatasetPanel}/>
     <Route path="datasets" handler={UserDatasetTable}/>
     <Route path="/dataset/:id" handler={DatasetDetail}/>

@@ -10,6 +10,7 @@ from scraping.company_api.company_name_to_domain import CompanyNameToDomain
 from scraping.email_pattern.email_hunter import EmailHunter
 from scraping.email_pattern.clearbit_search import ClearbitSearch
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
+from scraping.press.press import *
 from tornadotools.route import Route
 from websocket import *
 
@@ -25,8 +26,6 @@ from worker import conn as _conn
 q = Queue("low", connection=_conn)
 dq = Queue("default", connection=_conn)
 hq = Queue("high", connection=_conn)
-"""
-"""
 
 #change_feed: python -u change_feed.py
 @gen.coroutine
@@ -42,6 +41,26 @@ def print_changes():
         change = yield feed.next()
         print "lol"
         print change
+
+@gen.coroutine
+def email_pattern():
+    rethink_conn = yield r.connect(
+        host='rethinkdb_tunnel',
+        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+        db=os.environ['RETHINKDB_DB'],
+        auth_key=os.environ['RETHINKDB_AUTH_KEY']
+    )
+    feed = yield r.table('press_events').changes().run(rethink_conn)
+    while (yield feed.fetch_next()):
+        change = yield feed.next()
+        if "newswire.ca" in df.link:
+            q.enqueue(NewsWire()._parse_article_html, objectId, row.url)
+        elif "prnewswire" in df.link:
+            q.enqueue(PRNewsWire()._parse_article_html, objectId, row.url)
+        elif "businesswire" in df.link:
+            q.enqueue(BusinessWire()._parse_article_html, objectId, row.url)
+        elif "marketwire" in df.link:
+            q.enqueue(MarketWired()._parse_article_html, objectId, row.url)
 
 @gen.coroutine
 def email_pattern():

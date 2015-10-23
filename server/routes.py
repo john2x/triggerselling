@@ -20,17 +20,34 @@ q = Queue("low", connection=_conn)
 default_q = Queue("default", connection=_conn)
 high_q = Queue("high", connection=_conn)
 
+app = Flask(__name__, static_url_path="", static_folder="client")
+#app.debug = True
+#conn = r.connect(db="triggeriq")
 conn = r.connect(
   host='rethinkdb_tunnel',
   port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
   db=os.environ['RETHINKDB_DB'],
   auth_key=os.environ['RETHINKDB_AUTH_KEY']
 )
-app = Flask(__name__, static_url_path="", static_folder="client")
+
 if 'DEBUG' in os.environ:
-  app.debug = True
+    app.debug = True
+
+# Authentication Routes
+@app.route("/login")
+def login():
+  return render_template('signup.html')
+
+@app.route("/signup")
+def signup():
+  return render_template('signup.html')
+
+@app.route("/logout")
+def logout():
+    return redirect(somewhere)
 
 # TODO
+# - auth
 # - real time web socket trigger for new results that come in the background
 # - company research stats
 # - create a table to address speed of researches
@@ -38,7 +55,6 @@ if 'DEBUG' in os.environ:
 #
 # - make sure that the endpoints return same stuff every time
 # - make create / delete / edit  signal modal work
-# - auth
 # - newrelic figure out which python process is so CPU intensive
 #
 # - press signals
@@ -57,11 +73,9 @@ def company_name_to_domain(company_name):
     print data
     return make_response(json.dumps(data))
 
-
 @app.route("/company_research")
 def company_research():
   triggers = r.table("triggers").coerce_to("array").run(conn)
-
   for val in triggers:
       if "domain" not in val.keys(): continue
       print val["domain"]
@@ -81,35 +95,11 @@ def trigger_research():
   return make_response(json.dumps({"started":True}))
   #return "Hello from python"
 
-@app.route("/login")
-def login():
-  return render_template('signup.html')
-
-@app.route("/signup")
-def signup():
-  return render_template('signup.html')
-
-@app.route("/logout")
-def logout():
-    logout_user()
-    return redirect(somewhere)
-
-@app.route("/app")
-#TODO requires authentication
-def app_hello():
-  return send_from_directory("client", "index.html")
-
-@app.route("/test")
-#TODO requires authentication
-def test():
-  #return app.send_static_file('static/landing/landing_page.html')
-  return render_template('landing_page.html')
-
 @app.route("/")
 #TODO requires authentication
 def hello():
   #return app.send_static_file('static/landing/landing_page.html')
-  return render_template('landing_page.html')
+  return send_from_directory("client", "index.html")
 
 # application routes
 @app.route("/profiles")
@@ -205,3 +195,8 @@ def company_employees(_id):
 
 # TODO
 # Generate Fake Test Data For Schema
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    app.run(host='0.0.0.0', port=8000)
+
