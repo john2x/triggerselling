@@ -1,5 +1,5 @@
 import os
-from flask import Flask, send_from_directory, render_template, make_response
+from flask import Flask, send_from_directory, render_template, make_response, request
 import pandas as pd
 from redis import Redis
 from rq_scheduler import Scheduler
@@ -13,27 +13,26 @@ from scraping.email_pattern.clearbit_search import ClearbitSearch
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
 import logging
 import sys
+from auth import Auth, auth
+from flask_jwt import JWT, jwt_required, current_identity
+
+from raven.contrib.flask import Sentry
 
 from rq import Queue
 from worker import conn as _conn
+import rethink_conn
 q = Queue("low", connection=_conn)
-default_q = Queue("default", connection=_conn)
-high_q = Queue("high", connection=_conn)
+dq = Queue("default", connection=_conn)
+hq = Queue("high", connection=_conn)
 
 app = Flask(__name__, static_url_path="", static_folder="client")
-#app.debug = True
-#conn = r.connect(db="triggeriq")
-conn = r.connect(
-  host='rethinkdb_tunnel',
-  port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-  db=os.environ['RETHINKDB_DB'],
-  auth_key=os.environ['RETHINKDB_AUTH_KEY']
-)
+app.debug = True
+sentry = Sentry(app, dsn='https://a8eac57225094af19dde9bd29aec2487:90689fd1b88c475ba0e5c13ddb27d1d4@app.getsentry.com/55649')
+Auth(app)
 
-if 'DEBUG' in os.environ:
-    app.debug = True
 
 # Authentication Routes
+"""
 @app.route("/login")
 def login():
   return render_template('signup.html')
@@ -45,6 +44,7 @@ def signup():
 @app.route("/logout")
 def logout():
     return redirect(somewhere)
+"""
 
 # TODO
 # - auth
@@ -64,55 +64,68 @@ def logout():
 # - onboarding modal
 
 @app.route("/test_1")
+@jwt_required()
 def test_1():
     return "test_8"
 
 @app.route("/domain/<company_name>")
 def company_name_to_domain(company_name):
+    conn = rethink_conn.conn()
     data = CompanyNameToDomain().get(company_name)
     print data
     return make_response(json.dumps(data))
 
 @app.route("/company_research")
 def company_research():
-  triggers = r.table("triggers").coerce_to("array").run(conn)
-  for val in triggers:
-      if "domain" not in val.keys(): continue
-      print val["domain"]
-      q.enqueue(ClearbitSearch()._update_company_record,
-                val["domain"], val["company_key"])
-  return make_response(json.dumps({"started":True}))
+    conn = rethink_conn.conn()
+    triggers = r.table("triggers").coerce_to("array").run(conn)
+    for val in triggers:
+        if "domain" not in val.keys(): continue
+        print val["domain"]
+        dq.enqueue(ClearbitSearch()._update_company_record,
+                  val["domain"], val["company_key"])
+    return make_response(json.dumps({"started":True}))
 
 @app.route("/trigger_research")
 def trigger_research():
-  triggers = r.table("triggers").coerce_to("array").run(conn)
+    conn = rethink_conn.conn()
+    triggers = r.table("triggers").coerce_to("array").run(conn)
 
-  for val in triggers:
-      q.enqueue(CompanyNameToDomain()._update_company_record,
-                val["company_name"], val["company_key"])
-      q.enqueue(GoogleEmployeeSearch()._update_employee_record,
-                val["company_name"], "", val["company_key"])
-  return make_response(json.dumps({"started":True}))
-  #return "Hello from python"
+    for val in triggers:
+        dq.enqueue(CompanyNameToDomain()._update_company_record,
+                  val["company_name"], val["company_key"])
+        dq.enqueue(GoogleEmployeeSearch()._update_employee_record,
+                  val["company_name"], "", val["company_key"])
+    return make_response(json.dumps({"started":True}))
+    #return "Hello from python"
 
 @app.route("/")
+
 #TODO requires authentication
 def hello():
   #return app.send_static_file('static/landing/landing_page.html')
   return send_from_directory("client", "index.html")
 
 # application routes
-@app.route("/profiles")
+@app.route("/profiles", methods=["GET","POST","PUT"])
 @crossdomain(origin='*')
 def profiles():
-  profiles = r.table("prospect_profiles").coerce_to("array").run(conn)
-  #return flask.jsonify(**{"lol":"lmao"})
-  return make_response(json.dumps(profiles))
+    conn = rethink_conn.conn()
+    profiles = r.table("prospect_profiles").coerce_to("array").run(conn)
+    return make_response(json.dumps(profiles))
+
+@app.route("/stripe_upgrade", methods=["GET","POST","PUT"])
+@crossdomain(origin='*')
+def stripe_upgrade():
+    conn = rethink_conn.conn()
+    profiles = r.table("prospect_profiles").coerce_to("array").run(conn)
+    return make_response(json.dumps(profiles))
 
 # application routes
 @app.route("/profile/<_id>/companies")
 @crossdomain(origin='*')
 def profile_companies():
+    conn = rethink_conn.conn()
     profiles = r.table("prospect_profiles").coerce_to("array").run(conn)
     #return flask.jsonify(**{"lol":"lmao"})
     return make_response(json.dumps(profiles))
@@ -120,7 +133,9 @@ def profile_companies():
 @app.route("/triggers")
 @crossdomain(origin='*')
 def triggers():
+    # TODO paginate
     #data = r.table("triggers").limit(50).coerce_to("array").run(conn)
+    conn = rethink_conn.conn()
     data = r.table("triggers").eq_join("profile",
            r.table("prospect_profiles")).coerce_to("array").zip().run(conn)
     #data = pd.DataFrame(data)
@@ -129,25 +144,27 @@ def triggers():
                  if "company_domain_research" not in i]]
     # TODO
     # load triggers with completed domain research
-    data = data[data.domain.notnull()].to_dict("r")[:2]
+    data = data[data.domain.notnull()].to_dict("r")[:30]
     print data
     return make_response(json.dumps(data))
 
 @app.route("/profiles/<_id>")
 @crossdomain(origin='*')
 def profile_id(_id):
+    conn = rethink_conn.conn()
     data = r.table("prospect_profiles").get(_id).coerce_to("array").run(conn)
     return make_response(json.dumps(data))
 
 @app.route("/company/<_id>")
 def company_id(_id):
+    conn = rethink_conn.conn()
     data = r.table("triggers").get(_id).coerce_to("array").run(conn)
-    #return render_template('landing_page.html')
     return make_response(json.dumps(data))
 
 @app.route("/companies/<domain>")
 @crossdomain(origin='*')
 def company_info(domain):
+    conn = rethink_conn.conn()
     data = r.table("companies").filter({"domain":domain}).run(conn)
     try:
       data = list(data)[0]
@@ -156,47 +173,40 @@ def company_info(domain):
     return make_response(json.dumps(data))
 
 @app.route("/company/<_id>/employees")
+#@jwt_required()
+# add simmetrica events
+# timing requests
 @crossdomain(origin='*')
 def company_employees(_id):
+    # TODO - create company employee keys
     print _id
-    data = r.table("company_employees").filter({"company_id":_id}).coerce_to("array").run(conn)
-    #return render_template('landing_page.html')
-    #data = [1,2,3]
+    # current_identity
+    conn = rethink_conn.conn()
+    qry = {"company_id":_id}
+    data = r.table("company_employees").filter(qry).coerce_to("array").run(conn)
     return make_response(json.dumps(data))
 
-# Redis Datastructures
-# URL Set to Crawl for each source
-# User Profiles Stored in hash
-# => Twitter Profiles
-# => Job Profiles
-# => Press Profiles
-# => Industry Profiles
-# User Company Domains stored in hash
+@app.route("/api_key_test")
+#@require_appkey
+@crossdomain(origin='*')
+def api_key_test():
+    data = {"authenticated":True}
+    print request.__dict__
+    #key = user_id or jwt_token
+    simmetrica.push('{0}:requests:used'.format(key))
+    return make_response(json.dumps(data))
 
-# Features / Reqs
-# Real-time String filtering
-# Real-time Property Filtering
-# Real-time feed/ml scoring
-# Add Activity Feeds
-# Fan Out Adding To Feeds
+@app.route('/lmao')
+def lol_test():
+    data = {"test":"lmao"}
+    return make_response(json.dumps(data))
 
-# Clearspark
-# => Subscribing to a list of domains
-# => User specific feeds
-
-# TriggerIQ
-# [press, industry]
-# => Subscribing to an event
-
-# [twitter, jobs]
-# => Subscribing to an event
-# => do a string match
-# => and then add to feed
-
-# TODO
-# Generate Fake Test Data For Schema
+@app.route('/protected')
+@jwt_required()
+def protected():
+    return '%s' % current_identity
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=7000)
 

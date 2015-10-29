@@ -152,7 +152,7 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
                     React.createElement("td", null, 
                      React.createElement("a", {href: "javascript:", className: "thumbnail", 
                         style: {height:55,width:55,marginRight:15,float:"left",marginBottom:0}}, 
-                        React.createElement("img", {src: company_info.logo, alt: "..."})
+                        React.createElement("img", {src: (company_info.logo) ? company_info.logo : "images/empty_company.png", alt: ""})
                       )
                     ), 
                     React.createElement("td", {style: {padding:5,width:"35%"}}, 
@@ -250,21 +250,40 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
     console.log(b)
   },
 
+  openLink: function(e) {
+    //e.preventDefault()
+    console.log("open")
+    //li = JSON.parse(this.props.company.company_info)
+    //console.log(li)
+    //window.open(li,'_blank')
+  },
+
   render: function() {
     console.log(this.props)
+    ci = JSON.parse(this.props.company.company_info)
+    console.log(ci)
     company = (this.props.company.trigger) ? this.props.company.trigger : {}
     employees = (this.props.company.employees) ? this.props.company.employees : []
     employees = _.map(employees, function(emp) {
-        return React.createElement("div", {style: {paddingLeft:5}}, 
+        return React.createElement("div", {style: {paddingLeft:5,width:"80%"}}, 
           React.createElement(UserPic, null), 
           React.createElement("h5", {style: {marginBottom:0}}, React.createElement("span", {style: {fontWeight:"bold"}}, emp.name), " - ", React.createElement("small", null, emp.title)), 
           React.createElement("h6", {style: {marginTop:4}}, emp.locale), 
+          React.createElement("input", {className: "form-control input-sm", value: "example@example.com", 
+            style: {float:"right",marginTop:-35,marginRight:60, width:150}}), 
+
+          React.createElement("a", {className: "btn btn-primary btn-xs", 
+              onClick: this.openLink, 
+              style: {float:"right",marginTop:-32,marginRight:30}}, 
+            React.createElement("i", {className: "fa fa-external-link"})
+          ), 
           React.createElement("a", {href: "javascript:", className: "btn btn-success btn-xs", 
-              style: {float:"right",marginTop:-35,marginRight:30}}, 
+              style: {float:"right",marginTop:-32,marginRight:0}}, 
             React.createElement("i", {className: "fa fa-plus"})
           )
         )
     })
+
     return (
       React.createElement("div", {style: {position:"fixed",top:0,width:"100%",height:"100%"}}, 
         React.createElement("div", {style: {height:"100%",width:"100%",position:"absolute",top:0,left:0,backgroundColor:"rgba(255,255,255,0.7)",zIndex:1}, 
@@ -273,8 +292,36 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
           React.createElement("i", {className: "fa fa-times"})
         )
       ), 
-      React.createElement("div", {style: {width:"60%",float:"right",borderLeft:"1px solid #ccc",zIndex:2,position:"absolute",top:0,right:0,height:"100%",backgroundColor:"white"}}, 
-        React.createElement("h1", null, company.company_name), 
+      React.createElement("div", {style: {width:"60%",float:"right",borderLeft:"1px solid #ccc",zIndex:2,position:"absolute",top:0,right:0,height:"100%",backgroundColor:"white",padding:15}}, 
+                     React.createElement("a", {href: "javascript:", className: "thumbnail", 
+                        style: {height:130,width:130,marginRight:15,float:"left",marginBottom:0}}, 
+                        React.createElement("img", {src: (ci.logo) ? ci.logo : "images/empty_company.png", alt: ""})
+                      ), 
+        React.createElement("h1", {style: {marginTop:0}}, company.company_name), 
+        React.createElement("h3", {style: {marginTop:0}}, React.createElement("small", null, "ci.category.industry"), 
+          " " + ' ' +
+          " ", 
+          React.createElement("div", {style: {display:"inline"}}, 
+          React.createElement("a", {className: "btn btn-default btn-xs"}, 
+            React.createElement("i", {className: "fa fa-angellist"})
+          ), 
+          " ", 
+          React.createElement("a", {className: "btn btn-default btn-xs"}, 
+            React.createElement("i", {className: "fa fa-linkedin"})
+          ), 
+          " ", 
+          React.createElement("a", {className: "btn btn-default btn-xs"}, 
+            React.createElement("i", {className: "fa fa-facebook"})
+          ), 
+          " ", 
+          React.createElement("a", {className: "btn btn-default btn-xs"}, 
+            React.createElement("i", {className: "fa fa-twitter"})
+          ), 
+          React.createElement("a", {className: "btn btn-default btn-xs"}, 
+            React.createElement("i", {className: "fa fa-globe"})
+          )
+          )), 
+        React.createElement("h5", {style: {width:"93%"}}, ci.description), 
         React.createElement("hr", null), 
         React.createElement("div", {style: {height:"83%",overflow:"auto"}}, 
           employees
@@ -355,7 +402,7 @@ var CreatePressTrigger = React.createClass({displayName: 'CreatePressTrigger',
 var CreateIndustryTrigger = React.createClass({displayName: 'CreateIndustryTrigger',
   render: function() {
     return (
-      React.createElement("div", null, 
+      React.createElement("div", {style: {fontFamily:"proxima-nova"}}, 
         React.createElement("br", null), 
         "Title Keywords:", 
         React.createElement(TwitterKeywords, null), 
@@ -367,18 +414,28 @@ var CreateIndustryTrigger = React.createClass({displayName: 'CreateIndustryTrigg
 })
 
 var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
+  componentDidMount: function() {
+    $(".modal-md").css({"font-family":"proxima-nova"})
+    $(".tab-content").css({"font-family":"proxima-nova"})
+
+  },
+
   render: function() {
     return (
-      React.createElement(Modal, {show: this.props.showModal, onHide: this.props.closeModal, bsSize: "medium", 'aria-labelledby': "contained-modal-title-lg"}, 
+      React.createElement(Modal, {show: this.props.showModal, onHide: this.props.closeModal, bsSize: "medium", 'aria-labelledby': "contained-modal-title-lg", style: {fontFamily:"proxima-nova !important"}}, 
         React.createElement(Modal.Header, {closeButton: true}, 
           React.createElement(Modal.Title, {id: "contained-modal-title-lg"}, "Create Trigger")
         ), 
         React.createElement(Modal.Body, null, 
+          React.createElement("h5", null, "Enter Trigger Name"), 
+          React.createElement("input", {className: "form-control", placeholder: "Trigger Name"}), 
+          React.createElement("br", null), 
           React.createElement(TabbedArea, {defaultActiveKey: 1}, 
             React.createElement(TabPane, {eventKey: 1, tab: "Twitter"}, React.createElement(CreateTwitterTrigger, null)), 
             React.createElement(TabPane, {eventKey: 2, tab: "Hiring"}, React.createElement(CreateHiringTrigger, null)), 
             React.createElement(TabPane, {eventKey: 3, tab: "Press"}, React.createElement(CreatePressTrigger, null)), 
-            React.createElement(TabPane, {eventKey: 4, tab: "Industry"}, React.createElement(CreateIndustryTrigger, null))
+            React.createElement(TabPane, {eventKey: 4, tab: "Industry"}, React.createElement(CreateIndustryTrigger, null)), 
+            React.createElement(TabPane, {eventKey: 5, tab: "News"}, React.createElement(CreateIndustryTrigger, null))
           )
         ), 
         React.createElement(Modal.Footer, null, 
@@ -390,6 +447,197 @@ var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
 })
 
 module.exports = CreateTriggerModal
+
+});
+
+;require.register("dashboard", function(exports, require, module) {
+var BarChart = rd3.BarChart;
+var LineChart = rd3.LineChart;
+var PieChart = rd3.PieChart;
+var AreaChart = rd3.AreaChart;
+var Treemap = rd3.Treemap;
+var ScatterChart = rd3.ScatterChart;
+var CandleStickChart = rd3.CandleStickChart;
+
+var Dashboard = React.createClass({displayName: 'Dashboard',
+  getInitialState: function() {
+    return {
+      profile_value_counts: [],
+      rq_job_counts: ["~","~","~",],
+    }
+  },
+
+  componentDidMount: function() {
+   Pusher.log = function(message) {
+      if (window.console && window.console.log) {
+        window.console.log(message);
+      }
+    };
+
+    var pusher = new Pusher('f1141b13a2bc9aa3b519', {
+      encrypted: true
+    });
+    var channel = pusher.subscribe('admin_dashboard');
+
+    var _this = this;
+    channel.bind('profile_value_counts', function(data) {
+      console.log(data)
+      _this.setState({ "profile_value_counts" : data, "profile_last_updated": moment().unix()})
+    });
+    channel.bind('rq_job_counts', function(data) {
+      console.log(data)
+      _this.setState({ "rq_job_counts" : data, "rq_last_updated": moment().unix()})
+    });
+    channel.bind('average_counts', function(data) {
+      _this.setState({"average_counts" : data.message})
+    });
+    channel.bind('last_updated', function(data) {
+      _this.setState({"last_updated" : data.message})
+    });
+  },
+
+  render: function () {
+    var _this = this;
+    return (
+    React.createElement("div", {className: "container"}, 
+      React.createElement("h2", null, "Dashboard"), 
+      React.createElement("hr", null), 
+      React.createElement("h4", null, "Number of Triggers Per Profile ", React.createElement("small", null, "Last Updated: ", moment.unix(this.state.profile_last_updated).fromNow())), 
+      React.createElement("div", {className: "panel panel-default"}, 
+      React.createElement("table", {className: "table table-striped"}, 
+        React.createElement("tbody", null, 
+        _.map(_.keys(this.state.profile_value_counts), function(prof) { 
+          return (React.createElement("tr", null, 
+              React.createElement("td", null, prof), 
+              React.createElement("td", null, _this.state.profile_value_counts[prof])
+          ) )
+        }) 
+        
+        )
+      )
+      ), 
+      React.createElement("br", null), 
+
+      React.createElement("div", {className: "row"}, 
+          React.createElement("div", {className: "col-md-6"}, 
+              React.createElement("h4", null, "Number of Triggers Per Profile"), 
+              React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("table", {className: "table table-striped"}, 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Number of Triggers / per minute"), 
+                  React.createElement("td", null, "0")
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Value Count per Stage"), 
+                  React.createElement("td", null, "0")
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Average Time Spent On Company Name To Domain"), 
+                  React.createElement("td", null, "0")
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Average Time Spent On Company Employee"), 
+                  React.createElement("td", null, "0")
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Average Time Spent On Email Pattern"), 
+                  React.createElement("td", null, "0")
+                )
+              )
+              )
+          ), 
+          React.createElement("div", {className: "col-md-6"}, 
+              React.createElement("h4", null, "RQ Stats"), 
+              React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("table", {className: "table table-striped"}, 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Number of Jobs"), 
+                  React.createElement("td", null, 
+                    React.createElement("span", {className: "label label-info"}, 
+                      this.state.rq_job_counts[0]
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-primary"}, 
+                      this.state.rq_job_counts[1]
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-success"}, 
+                      this.state.rq_job_counts[2]
+                    ), " "
+                  )
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "High Jobs Per Minute"), 
+                  React.createElement("td", null, "0")
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Average Time Spent On Company Name To Domain"), 
+                  React.createElement("td", null, "0")
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Average Time Spent On Company Employee"), 
+                  React.createElement("td", null, "0")
+                ), 
+                React.createElement("tr", null, 
+                  React.createElement("td", null, "Average Time Spent On Email Pattern"), 
+                  React.createElement("td", null, "0")
+                )
+              )
+              )
+          )
+      ), 
+      React.createElement("div", {className: "row"}, 
+          React.createElement("div", {className: "col-md-3"}, 
+            React.createElement("h4", null, "Company Name To Domain"), 
+            React.createElement("div", {className: "panel panel-default"}, 
+            React.createElement("table", {className: "table table-striped"}, 
+              React.createElement("tr", null, 
+                React.createElement("td", null, "Number of Triggers / per minute"), 
+                React.createElement("td", null, "0")
+              )
+            )
+            )
+          ), 
+          React.createElement("div", {className: "col-md-3"}, 
+            React.createElement("h4", null, "Secondary"), 
+            React.createElement("div", {className: "panel panel-default"}, 
+            React.createElement("table", {className: "table table-striped"}, 
+              React.createElement("tr", null, 
+                React.createElement("td", null, "Number of Triggers / per minute"), 
+                React.createElement("td", null, "0")
+              )
+            )
+            )
+          ), 
+
+          React.createElement("div", {className: "col-md-3"}, 
+            React.createElement("h4", null, "Third"), 
+            React.createElement("div", {className: "panel panel-default"}, 
+            React.createElement("table", {className: "table table-striped"}, 
+              React.createElement("tr", null, 
+                React.createElement("td", null, "Number of Triggers / per minute"), 
+                React.createElement("td", null, "0")
+              )
+            )
+            )
+          ), 
+
+          React.createElement("div", {className: "col-md-3"}, 
+            React.createElement("h4", null, "Company Name To Domain"), 
+            React.createElement("div", {className: "panel panel-default"}, 
+            React.createElement("table", {className: "table table-striped"}, 
+              React.createElement("tr", null, 
+                React.createElement("td", null, "Number of Triggers / per minute"), 
+                React.createElement("td", null, "0")
+              )
+            )
+            )
+          )
+
+      )
+    ))
+  }
+});
+
+module.exports = Dashboard
 
 });
 
@@ -445,25 +693,45 @@ var LandingPage = React.createClass({displayName: 'LandingPage',
     location.href="/#landing"
   },
 
+  signUp: function() {
+    data = {}
+    $.ajax({
+      url:location.origin+ "/signup",
+      data: {},
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        location.currentUser(res.token)
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+  },
+
+  componentDidMount: function() {
+  },
+
   render: function() {
     return (
       React.createElement("div", {style: {paddingTop:50}}, 
 
         React.createElement("h4", {style: {fontWeight:800,fontSize:22,cursor:"pointer"}, 
-          onClick: this.home}, "TriggerIQ"), 
+          onClick: this.home}, "SignalIQ"), 
 
         React.createElement("a", {href: "#pricing", className: "", style: {float:"right",marginTop:-32,marginRight:300,fontWeight:600,fontSize:12,color:"#0072f0"}}, "PRICING"), 
 
         React.createElement("a", {href: "#login", className: "btn btn-primary", style: {float:"right",marginTop:-40}}, "LOG IN"), 
         React.createElement("div", {className: "row", style: {marginTop:40}}, 
         React.createElement("div", {className: "col-md-6"}, 
-          React.createElement("h1", null, "Leverage The Power Of Trigger Based Selling"), 
+          React.createElement("h1", null, "Leverage The Power Of Signal Based Selling"), 
           React.createElement("br", null), 
           React.createElement("hr", null), 
           React.createElement("h4", {style: {marginTop:10}}, "STOP WASTING YOUR SALES REPS TIME COLD CALLING "), 
           React.createElement("h4", {style: {marginTop:20,fontStyle:"italic"}}, "START REACHING OUT TO PROSPECTS AT THE RIGHT TIME"), 
           React.createElement("input", {className: "form-control input-lg", style: {marginTop:30,width:300,borderRadius:2,fontSize:16}, placeholder: "EMAIL"}), 
           React.createElement("input", {className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "PASSWORD", type: "password"}), 
+          React.createElement("input", {className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "CONFIRM PASSWORD", type: "password"}), 
           React.createElement("a", {className: "btn btn-lg btn-success", style: {marginTop:10,width:150,fontSize:16}}, "SIGN UP")
         ), 
 
@@ -483,6 +751,22 @@ module.exports = LandingPage
 
 ;require.register("login", function(exports, require, module) {
 var Login = React.createClass({displayName: 'Login',
+  loginUser: function() {
+    data = {}
+    $.ajax({
+      url:location.origin+ "/login",
+      data: {},
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        location.currentUser(res.token)
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+  },
+
   render: function() {
     return (
       React.createElement("div", {style: {textAlign:"center",paddingTop:120}}, 
@@ -503,7 +787,50 @@ module.exports = Login
 
 });
 
+;require.register("navbar", function(exports, require, module) {
+var Navbar = React.createClass({displayName: 'Navbar',
+  gotoProfile: function() {
+    location.href="#profile"
+  },
+
+  gotoHome: function() {
+    location.href="#"
+  },
+
+  render: function() {
+    return (
+      React.createElement("header", {className: "header", style: {paddingTop:20,paddingBottom:40}}, 
+        React.createElement("ul", {className: "text-muted", style: {paddingLeft:0}}, 
+          React.createElement("li", {className: "app-logo", style: {marginLeft:0}, onClick: this.gotoHome}, 
+            React.createElement("div", null, 
+            React.createElement("img", {src: "images/blaze-logo.png", style: {marginTop:4,height:18,marginLeft:-15,display:"none"}}), 
+            React.createElement("div", {style: {}, style: {color:"#000"}}, " TriggerIQ")
+            )
+          ), 
+          React.createElement("div", {style: {display:"block"}}, 
+            React.createElement("span", {style: {display:"none"}}, 
+            React.createElement("li", {style: {fontWeight:"bold",color:"#0079ff",color:"#000"}}, "DATASETS"), 
+            React.createElement("li", null, "USERS"), 
+            React.createElement("li", null, "EXPLORE"), 
+            React.createElement("li", null, "COMPUTE")
+            ), 
+            React.createElement("li", {style: {float:"right"}, onClick: this.gotoProfile}, 
+              React.createElement("img", {src: "images/user.png", style: {height:30,width:30,borderRadius:30}})
+            )
+          )
+        )
+      )
+    )
+  }
+})
+
+module.exports = Navbar
+
+});
+
 ;require.register("pricing", function(exports, require, module) {
+var PricingPanel = require("pricing_panel")
+
 var LandingPage = React.createClass({displayName: 'LandingPage',
   home: function() {
     location.href="/#landing"
@@ -521,6 +848,22 @@ var LandingPage = React.createClass({displayName: 'LandingPage',
 
         React.createElement("a", {href: "#signup", className: "btn btn-success", style: {float:"right",marginTop:-40,marginRight:80}}, "SIGN UP"), 
         React.createElement("a", {href: "#login", className: "btn btn-primary", style: {float:"right",marginTop:-40}}, "LOG IN"), 
+        React.createElement(PricingPanel, null)
+      )
+    )
+  }
+})
+
+
+module.exports = LandingPage
+
+});
+
+;require.register("pricing_panel", function(exports, require, module) {
+var PricingPanel = React.createClass({displayName: 'PricingPanel',
+  render: function() {
+    return (
+      React.createElement("div", null, 
         React.createElement("div", {className: "row", style: {marginTop:40}}, 
           React.createElement("div", {className: "col-md-4 col-sm-4 col-xs-4"}, 
             React.createElement("div", {className: "pricing-col"}, 
@@ -588,8 +931,158 @@ var LandingPage = React.createClass({displayName: 'LandingPage',
   }
 })
 
+module.exports = PricingPanel
 
-module.exports = LandingPage
+});
+
+;require.register("profile", function(exports, require, module) {
+var Navbar = require("navbar")
+var PricingPanel = require("pricing_panel")
+
+var Profile = React.createClass({displayName: 'Profile',
+  render: function() {
+    return (
+      React.createElement("div", null, 
+        React.createElement(Navbar, null), 
+        React.createElement("div", {className: "row"}, 
+          React.createElement("div", {className: "col-md-6"}, 
+            React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("div", {className: "panel-body"}, 
+                React.createElement("h3", null, "Current Plan"), 
+                React.createElement("hr", null), 
+                React.createElement("h4", null, "1. Payment Information"), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "Credit Card Number", style: {marginBottom:10}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "MM", style: {marginBottom:5,width:"20%",display:"inline-block",marginRight:15}}), 
+                React.createElement("h4", {style: {display:"inline"}}, " /    "), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "YY", style: {marginBottom:5,width:"20%",display:"inline-block"}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "CVC", style: {marginBottom:5,width:"20%",display:"inline-block",float:"right"}}), 
+                React.createElement("hr", null), 
+                React.createElement("h4", null, "2.  Select Your Plan"), 
+        React.createElement("div", {className: "radio"}, 
+        React.createElement("form", {role: "form"}, 
+          React.createElement("div", {className: "radio"}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {for: "radio3"}
+              ), 
+              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Free Trial"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$0")
+          ), 
+          React.createElement("div", {className: "radio"}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {for: "radio3"}
+              ), 
+              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Starter"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$99")
+          ), 
+          React.createElement("div", {className: "radio"}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {for: "radio3"}
+              ), 
+              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Professional"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$499")
+          ), 
+          React.createElement("div", {className: "radio"}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {for: "radio3"}
+              ), 
+              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Enterprise"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$999")
+          )
+        ), 
+
+                React.createElement("hr", null), 
+          React.createElement("h4", null, "3. Select Billing Cycle"), 
+              React.createElement("br", null), 
+              React.createElement("form", {role: "form"}, 
+                React.createElement("div", {className: "radio", style: {display:"inline"}}, 
+                    React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1"}), 
+                    React.createElement("label", {for: "radio3"}, React.createElement("h5", {style: {marginTop:0}}, "Monthly "))
+                ), 
+                " " + ' ' +
+                " ", 
+                React.createElement("div", {className: "radio", style: {display:"inline"}}, 
+                    React.createElement("input", {type: "radio", name: "radio2", id: "radio4", value: "option2"}), 
+                    React.createElement("label", {for: "radio4"}, React.createElement("h5", {style: {marginTop:0}}, "Yearly  ", React.createElement("span", {style: {fontWeight:"bold",color:"#15cd72"}}, "-20 %")))
+                )
+              ), 
+  
+              React.createElement("br", null), 
+              React.createElement("br", null), 
+          React.createElement("a", {href: "javascript:", style: {display:"block",textAlign:"center",fontSize:16}, 
+              className: "btn btn-lg btn-primary"}, 
+              "Complete and Upgrade"
+          )
+
+        )
+              )
+            )
+          ), 
+          React.createElement("div", {className: "col-md-6"}, 
+            React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("div", {className: "panel-body"}, 
+                React.createElement("h3", null, "Billing Information"), 
+                React.createElement("hr", null), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "First Name", style: {marginBottom:10,width:"48.5%",display:"inline-block",marginRight:15}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "Last Name", style: {marginBottom:10,width:"48.5%",display:"inline-block"}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "Company", style: {marginBottom:10}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "Address", style: {marginBottom:5}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "Postal Code", style: {marginBottom:10,width:"48%",display:"inline-block",marginRight:15}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "City", style: {marginBottom:10,width:"48%",display:"inline-block"}}), 
+          React.createElement("br", null), 
+          React.createElement("a", {href: "javascript:", style: {display:"block",textAlign:"center",fontSize:16}, 
+              className: "btn btn-lg btn-primary"}, 
+              "Update Billing Information"
+          )
+              )
+            )
+          ), 
+          React.createElement("div", {className: "col-md-6"}, 
+            React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("div", {className: "panel-body"}, 
+                React.createElement("h3", null, "Invoices"), 
+                React.createElement("hr", null)
+              )
+            )
+          ), 
+          React.createElement("div", {className: "col-md-6"}, 
+            React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("div", {className: "panel-body"}, 
+                React.createElement("h3", null, "My Account"), 
+                React.createElement("hr", null), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "Email", style: {marginBottom:10}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "New Password", type: "password", style: {marginBottom:10}}), 
+                React.createElement("input", {className: "form-control input-lg", placeholder: "Confirm Password", type: "password", style: {marginBottom:10}}), 
+                React.createElement("a", {href: "javascript:", className: "btn btn-primary", style: {display:"block",fontSize:16}}, "Update Account")
+              )
+            )
+          )
+        )
+      )
+    )
+  }
+})
+
+module.exports = Profile
 
 });
 
@@ -731,6 +1224,9 @@ var LandingPage = require("landing_page")
 var Pricing = require("pricing")
 var Login = require("login")
 var Signup = require("signup")
+var Profile = require("profile")
+var Navbar = require("navbar")
+var Dashboard = require("dashboard")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -756,29 +1252,6 @@ var Inbox = React.createClass({displayName: 'Inbox',
   }
 });
 
-var Navbar = React.createClass({displayName: 'Navbar',
-  render: function() {
-    return (
-      React.createElement("header", {className: "header", style: {paddingTop:20,paddingBottom:40}}, 
-        React.createElement("ul", {className: "text-muted"}, 
-          React.createElement("li", {className: "app-logo"}, 
-            React.createElement("div", null, 
-            React.createElement("img", {src: "images/blaze-logo.png", style: {marginTop:4,height:18,marginLeft:-15,display:"none"}}), 
-            React.createElement("div", {style: {}, style: {color:"#000"}}, " TriggerIQ")
-            )
-          ), 
-          React.createElement("div", {style: {display:"none"}}, 
-            React.createElement("li", {style: {fontWeight:"bold",color:"#0079ff",color:"#000"}}, "DATASETS"), 
-            React.createElement("li", null, "USERS"), 
-            React.createElement("li", null, "EXPLORE"), 
-            React.createElement("li", null, "COMPUTE"), 
-            React.createElement("li", {style: {float:"right",marginRight:50}}, "LOGOUT")
-          )
-        )
-      )
-    )
-  }
-})
 
 var NewDatasetPanel = React.createClass({displayName: 'NewDatasetPanel',
   render: function() {
@@ -974,6 +1447,10 @@ var Main = React.createClass({displayName: 'Main',
   toggleCompanyDetailOverlay: function(company) {
     this.setState({currentCompany: company })
     this.setState({detailMode: !this.state.detailMode})
+    if(!this.state.detailMode)
+      $("body").css({"overflow":"hidden"})
+    else
+      $("body").css({"overflow":"auto"})
   },
 
   componentWillMount: function() {
@@ -1020,7 +1497,7 @@ var Main = React.createClass({displayName: 'Main',
             //dataType:"json",
             success: function(res) {
               triggerId = this.triggerId+"_company_info"
-              //console.log(triggerId)
+              console.log(triggerId)
               //console.log(res)
               //_this.setState({triggerId: res})
               localStorage[triggerId] = JSON.stringify(res)
@@ -1047,6 +1524,8 @@ var Main = React.createClass({displayName: 'Main',
       employeeId = trig.company_key+"_employees"
       companyInfoId = trig.company_key+"_company_info"
       //console.log(localStorage.employeeId)
+      emps = []
+      company_info = []
       if(localStorage[employeeId])
         emps = (localStorage[employeeId] != "") ? JSON.parse(localStorage[employeeId]) : []
       else
@@ -1065,12 +1544,12 @@ var Main = React.createClass({displayName: 'Main',
     return (
       React.createElement("div", null, 
           React.createElement(Navbar, null), 
-      React.createElement("div", {className: "container"}, " ", React.createElement("br", null), 
+      React.createElement("div", {className: "container", style: {overflow:"hidden"}}, " ", React.createElement("br", null), 
         React.createElement("div", {className: "row"}, 
           React.createElement(ProfileSidebar, {
               profiles: this.state.profiles, 
               lol: "yoyo", 
-              toggleCreateTrigerModal: this.toggleCreateTriggerModal}), 
+              toggleCreateTriggerModal: this.toggleCreateTriggerModal}), 
           React.createElement("div", {className: "col-md-10", style: {paddingLeft:30}}, 
             React.createElement("div", {style: {display:"block",marginLeft:"auto",marginRight:100,
                          textAlign:"center",marginTop:8}}, 
@@ -1112,6 +1591,8 @@ var routes = (
     React.createElement(Route, {path: "login", handler: Login}), 
     React.createElement(Route, {path: "signup", handler: Signup}), 
     React.createElement(Route, {path: "pricing", handler: Pricing}), 
+    React.createElement(Route, {path: "profile", handler: Profile}), 
+    React.createElement(Route, {path: "dashboard", handler: Dashboard}), 
     React.createElement(Route, {path: "new_dataset", handler: NewDatasetPanel}), 
     React.createElement(Route, {path: "datasets", handler: UserDatasetTable}), 
     React.createElement(Route, {path: "/dataset/:id", handler: DatasetDetail}), 

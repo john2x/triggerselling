@@ -14,23 +14,37 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 
-bugsnag.configure(
-  api_key = "2556d33391f9accc8ea79325cd78ab62"
-)
+from raven import Client
+from raven.transport.http import HTTPTransport
+from rq.contrib.sentry import register_sentry
+
+client = Client('https://a8eac57225094af19dde9bd29aec2487:90689fd1b88c475ba0e5c13ddb27d1d4@app.getsentry.com/55649', transport=HTTPTransport)
 
 listen = ['high', 'default', 'low']
+
+concurrency = 1
+
+try:
+  opts, args = getopt.getopt(sys.argv[1:],"c:",[])
+except getopt.GetoptError:
+  print 'worker.py -c <concurrency>'
+  sys.exit(2)
+for opt, arg in opts:
+  if opt == '-c':
+    concurrency = int(arg)
 
 redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
 conn = redis.from_url(redis_url)
 
 def work():
   with Connection(conn):
-    Worker(map(Queue, listen), name=str(uuid.uuid1()), exc_handler=my_handler).work()
-
-def my_handler(job, exc_type, exc_value, traceback):
-  bugsnag.notify(traceback, meta_data={"type":exc_type,
-                                       "value":exc_value,
-                                       "source": "prospecter-api"})
+    worker = Worker(map(Queue, listen), name=str(uuid.uuid1()))
+    register_sentry(client, worker)
+    worker.work()
 
 if __name__ == '__main__':
-  work()
+  processes = [Process(target=work) for x in range(concurrency)]
+  for process in processes:
+    process.start()
+  for process in processes:
+    process.join()

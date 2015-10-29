@@ -8,6 +8,11 @@ from fuzzywuzzy import process
 from google import Google
 import tldextract
 import rethinkdb as r
+import time
+import bitmapist
+import math
+import arrow
+import redis
 #from crawl import CompanyInfoCrawl
 
 clearbit.key = 'dc80f4192b73cca928f4e7c284b46573'
@@ -35,6 +40,7 @@ class ClearbitSearch:
       #CompanyInfoCrawl()._persist(company, "clearbit", api_key)
 
   def _update_company_record(self, domain, _id):
+      start_time = time.time()
       print "UPDATE COMPANY RECORD"
       conn = r.connect(host="localhost", port=28015, db="triggeriq")
       company= [i for i in r.table('companies').filter({"domain":domain}).run(conn)]
@@ -49,6 +55,11 @@ class ClearbitSearch:
       data = {"company_domain_research_completed":r.now(), 
               "company_domain_research_result": result}
       r.table('triggers').get(_id).update(data).run(conn)
+      bitmapist.mark_event("function:time:clearbit_search_company_record", 
+                           int((time.time() - start_time)*10**6))
+      redis.Redis().zadd("function:time:clearbit_search_company_record", 
+                         str((time.time() - start_time)*10**6), 
+                         arrow.now().timestamp)
 
   def _update_person_record(self, email, _id):
       data = {"social_info": None, "email":email}
@@ -59,6 +70,7 @@ class ClearbitSearch:
       r.table('company_employees').get(_id).update(data).run(conn)
 
   def _bulk_update_employee_record(self, _id, pattern, domain):
+      start_time = time.time()
       conn = r.connect(host="localhost", port=28015, db="triggeriq")
       #_id = "eab41007-6b8c-11e5-b7e1-7831c1d137aa"
       employees = r.table("company_employees").filter({"company_id":_id}).run(conn)
@@ -70,6 +82,11 @@ class ClearbitSearch:
           email = pattern.format(**_data)+"@"+domain
           print email, person["id"]
           hq.enqueue(ClearbitSearch()._update_person_record, email, person["id"])
+      bitmapist.mark_event("function:time:bulk_update_employee_record", 
+                           int((time.time() - start_time)*10**6))
+      redis.Redis().zadd("function:time:bulk_update_employee_record", 
+                         str((time.time() - start_time)*10**6), 
+                         arrow.now().timestamp)
 
   def _company_search(self, domain):
     company = clearbit.Company.find(domain=domain, stream=True)

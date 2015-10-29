@@ -14,6 +14,9 @@ from bs4 import BeautifulSoup
 import requests
 import arrow
 from google import Crawlera
+import time
+import bitmapist
+import math
 #from people_signal import PeopleSignal
 #from clearspark import ClearSpark
 
@@ -104,6 +107,7 @@ class NewsWire():
         Helper()._persist(df, "newswire_industry")
 
     def _parse_article_html(self, objectId, url, industry_press=None):
+        start_time = time.time()
         print "NEWSWIRE PARSE ARTICLE"
         html = BeautifulSoup(requests.get(url).text)
         company_name = html.find("div",{"class":"company_info"})
@@ -118,12 +122,7 @@ class NewsWire():
         data = {"website":website, "company_name":company_name,
                 "article":article}
         print data
-        if industry_press:
-          r = Parse().update("IndustryPress", objectId, data)
-        else:
-          r = Parse().update("Press", objectId, data)
-        #TODO - queue company research
-        print r.json()
+        # TODO insert into rethink
 
     def paginate(self, url):
         pages = []

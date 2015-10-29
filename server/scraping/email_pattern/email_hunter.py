@@ -6,6 +6,8 @@ import json
 import pandas as pd
 from clearbit_search import ClearbitSearch
 import rethinkdb as r
+import redis
+import rethink_conn
 #from queue import RQueue
 
 from rq import Queue
@@ -42,6 +44,6 @@ class EmailHunter:
         print res.keys()
         if "pattern" in res.keys():
           del res["emails"]
-          conn = r.connect(host="localhost", port=28015, db="triggeriq")
+          conn = rethink_conn.conn()
           #r.table('hiring_signals').get(_id).update({"email_pattern":res}).run(conn)
           r.table('triggers').get(_id).update({"email_pattern":res}).run(conn)

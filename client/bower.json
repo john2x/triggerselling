@@ -3,22 +3,23 @@
   "version": "0.0.1",
   "main": "public/app.js",
   "dependencies": {
-    "react": "~0.13.3",
-    "react-router": "~0.13.3",
-    "bootstrap": "~3.3.5",
-    "fixed-data-table": "~0.4.1",
-    "underscore": "~1.8.3",
-    "moment": "~2.10.6",
-    "react-bootstrap": "~0.24.2",
-    "bower-bootstrap-slider": "~1.0.0",
-    "react-tagsinput": "~1.4.0",
     "awesome-bootstrap-checkbox": "~0.3.4",
+    "bootstrap": "~3.3.5",
     "bootstrap-datepicker": "~1.4.0",
+    "bower-bootstrap-slider": "~1.0.0",
     "datepair.js": "~0.4.9",
-    "react-tageditor": "*",
-    "jquery-ui": "~1.11.4",
+    "dropzone": "git@github.com:felixrieseberg/React-Dropzone-Component.git",
+    "fixed-data-table": "~0.4.1",
     "fontawesome": "~4.4.0",
-    "dropzone": "git@github.com:felixrieseberg/React-Dropzone-Component.git"
+    "jquery-ui": "~1.11.4",
+    "moment": "~2.10.6",
+    "react": "~0.13.3",
+    "react-bootstrap": "~0.24.2",
+    "react-d3": "~0.2.2",
+    "react-router": "~0.13.3",
+    "react-tageditor": "*",
+    "react-tagsinput": "~1.4.0",
+    "underscore": "~1.8.3"
   },
   "overrides": {
     "react-router": {
@@ -67,7 +68,10 @@
       ]
     },
     "font-awesome": {
-      "main": ["fonts", "css"]
+      "main": [
+        "fonts",
+        "css"
+      ]
     },
     "jqslider": {
       "main": [

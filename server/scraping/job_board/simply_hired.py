@@ -5,7 +5,12 @@ import rethinkdb as r
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
+import redis
 import arrow
+import time
+import bitmapist
+import math
+import rethink_conn
 #from parse import Parse
 
 class SimplyHired:
@@ -40,6 +45,7 @@ class SimplyHired:
         
     def _signal(self, qry, locale, profile, country=None):
         page = 1
+        start_time = time.time()
         print "Simply Hired"
         html = self._html(qry, page, locale, country)
         listings = self._listings(html)
@@ -60,7 +66,13 @@ class SimplyHired:
 
         keys = [row.company_name.lower().replace(" ","")+"_"+profile for i, row in companies.iterrows()]
         companies["company_key"] = keys
+        companies["createdAt"] = arrow.now().timestamp
 
-        conn = r.connect(host="localhost", port=28015, db="triggeriq")
+        conn = rethink_conn.conn()
         #r.table("hiring_signals").insert(companies.to_dict('r')).run(conn)
         r.table("triggers").insert(companies.to_dict('r')).run(conn)
+        bitmapist.mark_event("function:time:simplyhired_job_scrape", 
+                             int((time.time() - start_time)*10**6))
+        redis.Redis().zadd("function:time:simplyhired_job_scrape", 
+                           str((time.time() - start_time)*10**6), 
+                           arrow.now().timestamp)

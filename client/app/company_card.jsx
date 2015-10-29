@@ -18,7 +18,7 @@ var CompanyCard = React.createClass({
                     <td>
                      <a href="javascript:" className="thumbnail" 
                         style={{height:55,width:55,marginRight:15,float:"left",marginBottom:0}}>
-                        <img src={company_info.logo} alt="..."/>
+                        <img src={(company_info.logo) ? company_info.logo : "images/empty_company.png"} alt=""/>
                       </a>
                     </td>
                     <td style={{padding:5,width:"35%"}}>

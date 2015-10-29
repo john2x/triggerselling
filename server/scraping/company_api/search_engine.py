@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import urllib
+import redis
+import arrow
 
 class DuckDuckGo:
     def search(self, company_name):
@@ -17,6 +19,9 @@ class DuckDuckGo:
         browser.visit("https://duckduckgo.com/?{0}".format(qry))
         html = browser.html
         """
+        return self._html_to_df(html)
+        
+    def _html_to_df(self, html):
 
         bs = BeautifulSoup(html)
         dd = []
@@ -38,6 +43,9 @@ class Bing:
         #html = requests.get("http://www.bing.com/search?q=Sunstate+Equipment+Company").text
         qry = urllib.urlencode({"q":company_name})
         html = requests.get("http://www.bing.com/search?{0}".format(qry)).text
+        return self._html_to_df(html)
+        
+    def _html_to_df(self, html):
         bs = BeautifulSoup(html)
         bg = []
         for row in bs.find_all("li",{"class":"b_algo"}):
@@ -68,6 +76,9 @@ class Yandex:
         """
         _p = {"url":url, "timeout": 10, "wait": 0.5}
         html = requests.get("http://localhost:8950/render.html",params=_p).text
+        return self._html_to_df(html)
+        
+    def _html_to_df(self, html):
         bs = BeautifulSoup(html)
 
         yd = []

@@ -1,3 +1,7 @@
+redis: redis-server
 web: python -u routes.py
-worker: python -u worker.py -c 5
+worker: python -u worker.py -c 40
+change_feed: python -u change_feed.py
 clock: python -u clock.py
+splash: python -m splash.server --port=8950
+rq_dashboard: rq-dashboard

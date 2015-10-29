@@ -9,6 +9,11 @@ import arrow
 #from parse import Parse
 from google import Crawlera
 import urllib
+import redis
+import time
+import bitmapist
+import math
+import rethink_conn
 
 class ZipRecruiter:
     def _html(self, qry, page=1, location="", country=None):
@@ -41,17 +46,21 @@ class ZipRecruiter:
             link = listing.find("a")
             link = link["href"] if link else ""
             cols = ["job_title","company_name","location","summary","date",'timestamp',"link"]
+            print time
+            print time, arrow.get(time).timestamp
             vals = [title, company, location, desc, time, arrow.get(time).timestamp, link]
             listings.append(dict(zip(cols, vals)))
         return pd.DataFrame(listings)
     
     def _signal(self, qry, locale, profile, report, country=None):
+        
+        start_time = time.time()
         html = self._html(qry, 1, locale, country)
         listings = self._listings(html)
         last_page = html.find('ul',{'class':'paginationNumbers'})
         last_page = last_page.find_all('li') if last_page else None
         last_page = int(last_page[-1].text.strip()) if last_page else 1
-        conn = r.connect(host="localhost", port=28015, db="triggeriq")
+        conn = rethink_conn.conn()
         for page in range(last_page):
             html = self._html(qry, page, locale, country)
             #listings = listings.append(self._listings(html))
@@ -62,7 +71,13 @@ class ZipRecruiter:
             companies = listings
             keys = [row.company_name.lower().replace(" ","")+"_"+profile for i, row in companies.iterrows()]
             companies["company_key"] = keys
+            companies["createdAt"] = arrow.now().timestamp
             #r.table("hiring_signals").insert(companies.to_dict('r')).run(conn)
             r.table("triggers").insert(companies.to_dict('r')).run(conn)
+        bitmapist.mark_event("function:time:ziprecruiter_job_scrape", 
+                             int((time.time() - start_time)*10**6))
         #HiringSignal()._persist(listings, profile, report)
+        redis.Redis().zadd("function:time:ziprecruiter_job_scrape", 
+                           str((time.time() - start_time)*10**6), 
+                           arrow.now().timestamp)
 

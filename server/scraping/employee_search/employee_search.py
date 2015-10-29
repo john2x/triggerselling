@@ -12,6 +12,11 @@ from worker import conn
 #from crawl import *
 from fuzzywuzzy import fuzz
 import rethinkdb as r
+import redis
+import arrow
+import time
+import bitmapist
+import math
 #from jigsaw import *
 
 q = Queue(connection=conn)
@@ -132,7 +137,16 @@ class GoogleEmployeeSearch:
         return results
 
     def _update_employee_record(self, company_name,  _id, keyword=""):
+        start_time = time.time()
+
         res = self._employees(company_name, keyword, _id)
         print "EMPLOYEES FOUND", company_name, res.shape
         conn = r.connect(host="localhost", port=28015, db="triggeriq")
         r.table('company_employees').insert(res.to_dict("r")).run(conn)
+        bitmapist.mark_event("function:time:company_employee_search", 
+                             int((time.time() - start_time)*10**6))
+
+        redis.Redis().zadd("function:time:company_employee_search", 
+                           str((time.time() - start_time)*10**6), 
+                           arrow.now().timestamp)
+

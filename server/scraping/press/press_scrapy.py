@@ -1,4 +1,5 @@
 import requests
+import rethink_conn
 #from press import *
 from bs4 import BeautifulSoup
 from splinter import Browser
@@ -18,6 +19,7 @@ import rethinkdb as r
 import arrow
 from time import mktime
 from datetime import datetime
+import redis
 
 
 
@@ -133,7 +135,7 @@ class PressScrape:
             del data["published_parsed"]
         print data.ix[0]
         data = [row.dropna().to_dict() for i, row in data.iterrows()]
-        conn = r.connect(db="triggeriq")
+        conn = rethink_conn.conn()
         r.table("press_events").insert(data).run(conn)
 
     def _remove_non_ascii(self, text):

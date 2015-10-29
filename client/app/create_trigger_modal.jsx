@@ -53,7 +53,7 @@ var CreatePressTrigger = React.createClass({
 var CreateIndustryTrigger = React.createClass({
   render: function() {
     return (
-      <div>
+      <div style={{fontFamily:"proxima-nova"}}>
         <br/>
         Title Keywords:
         <TwitterKeywords />
@@ -65,18 +65,28 @@ var CreateIndustryTrigger = React.createClass({
 })
 
 var CreateTriggerModal = React.createClass({
+  componentDidMount: function() {
+    $(".modal-md").css({"font-family":"proxima-nova"})
+    $(".tab-content").css({"font-family":"proxima-nova"})
+
+  },
+
   render: function() {
     return (
-      <Modal show={this.props.showModal} onHide={this.props.closeModal} bsSize='medium' aria-labelledby='contained-modal-title-lg'>
+      <Modal show={this.props.showModal} onHide={this.props.closeModal} bsSize='medium' aria-labelledby='contained-modal-title-lg' style={{fontFamily:"proxima-nova !important"}}>
         <Modal.Header closeButton>
           <Modal.Title id='contained-modal-title-lg'>Create Trigger</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <h5>Enter Trigger Name</h5>
+          <input className="form-control" placeholder="Trigger Name"/>
+          <br/>
           <TabbedArea defaultActiveKey={1}>
             <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
             <TabPane eventKey={2} tab='Hiring'><CreateHiringTrigger /></TabPane>
             <TabPane eventKey={3} tab='Press'><CreatePressTrigger /></TabPane>
             <TabPane eventKey={4} tab='Industry'><CreateIndustryTrigger /></TabPane>
+            <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane>
           </TabbedArea>
         </Modal.Body>
         <Modal.Footer>

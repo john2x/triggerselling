@@ -13,6 +13,14 @@ from job_board.hiring_signal import HiringSignal
 from press.press import *
 import pandas as pd
 
+from rq import Queue
+from worker import conn as _conn
+import rethink_conn
+#q = Queue(connection=_conn)
+q = Queue("low", connection=_conn)
+dq = Queue("default", connection=_conn)
+hq = Queue("high", connection=_conn)
+
 class Signals:
     def _old_hiring(self, profile_id):
         qry = {'include':'profiles'}
@@ -98,12 +106,11 @@ class Signals:
         #q.enqueue(ClearSpark()._daily_news)
 
     def _cron(self):
-        conn = r.connect(host="localhost", port=28015, db="triggeriq")
+        conn = rethink_conn.conn()
         profiles = list(r.table("prospect_profiles").run(conn))
         for profile in profiles:
             _profile = [i["className"] for i in profile["profiles"]]
             #print _profile
-
             print "DEPLOYBOT"
             if 'HiringProfile' in _profile: 
                 q.enqueue(Signals()._hiring, profile, timeout=6000)

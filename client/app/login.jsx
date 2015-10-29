@@ -1,4 +1,20 @@
 var Login = React.createClass({
+  loginUser: function() {
+    data = {}
+    $.ajax({
+      url:location.origin+ "/login",
+      data: {},
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        location.currentUser(res.token)
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+  },
+
   render: function() {
     return (
       <div style={{textAlign:"center",paddingTop:120}}>

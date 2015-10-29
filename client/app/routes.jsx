@@ -10,6 +10,9 @@ var LandingPage = require("landing_page")
 var Pricing = require("pricing")
 var Login = require("login")
 var Signup = require("signup")
+var Profile = require("profile")
+var Navbar = require("navbar")
+var Dashboard = require("dashboard")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -35,29 +38,6 @@ var Inbox = React.createClass({
   }
 });
 
-var Navbar = React.createClass({
-  render: function() {
-    return (
-      <header className="header" style={{paddingTop:20,paddingBottom:40}}>
-        <ul className="text-muted">
-          <li className="app-logo">
-            <div>
-            <img src="images/blaze-logo.png" style={{marginTop:4,height:18,marginLeft:-15,display:"none"}}/>
-            <div style={{}} style={{color:"#000"}}> TriggerIQ</div>
-            </div>
-          </li>
-          <div style={{display:"none"}}>
-            <li style={{fontWeight:"bold",color:"#0079ff",color:"#000"}}>DATASETS</li>
-            <li>USERS</li>
-            <li>EXPLORE</li>
-            <li>COMPUTE</li>
-            <li style={{float:"right",marginRight:50}}>LOGOUT</li>
-          </div>
-        </ul>
-      </header>
-    )
-  }
-})
 
 var NewDatasetPanel = React.createClass({
   render: function() {
@@ -253,6 +233,10 @@ var Main = React.createClass({
   toggleCompanyDetailOverlay: function(company) {
     this.setState({currentCompany: company })
     this.setState({detailMode: !this.state.detailMode})
+    if(!this.state.detailMode)
+      $("body").css({"overflow":"hidden"})
+    else
+      $("body").css({"overflow":"auto"})
   },
 
   componentWillMount: function() {
@@ -299,7 +283,7 @@ var Main = React.createClass({
             //dataType:"json",
             success: function(res) {
               triggerId = this.triggerId+"_company_info"
-              //console.log(triggerId)
+              console.log(triggerId)
               //console.log(res)
               //_this.setState({triggerId: res})
               localStorage[triggerId] = JSON.stringify(res)
@@ -326,6 +310,8 @@ var Main = React.createClass({
       employeeId = trig.company_key+"_employees"
       companyInfoId = trig.company_key+"_company_info"
       //console.log(localStorage.employeeId)
+      emps = []
+      company_info = []
       if(localStorage[employeeId])
         emps = (localStorage[employeeId] != "") ? JSON.parse(localStorage[employeeId]) : []
       else
@@ -344,12 +330,12 @@ var Main = React.createClass({
     return (
       <div>
           <Navbar />
-      <div className="container"> <br/>
+      <div className="container" style={{overflow:"hidden"}}> <br/>
         <div className = "row">
           <ProfileSidebar 
               profiles={this.state.profiles}
               lol={"yoyo"}
-              toggleCreateTrigerModal={this.toggleCreateTriggerModal}/>
+              toggleCreateTriggerModal={this.toggleCreateTriggerModal}/>
           <div className="col-md-10" style={{paddingLeft:30}}>
             <div style={{display:"block",marginLeft:"auto",marginRight:100,
                          textAlign:"center",marginTop:8}}>
@@ -391,6 +377,8 @@ var routes = (
     <Route path="login" handler={Login}/>
     <Route path="signup" handler={Signup}/>
     <Route path="pricing" handler={Pricing}/>
+    <Route path="profile" handler={Profile}/>
+    <Route path="dashboard" handler={Dashboard}/>
     <Route path="new_dataset" handler={NewDatasetPanel}/>
     <Route path="datasets" handler={UserDatasetTable}/>
     <Route path="/dataset/:id" handler={DatasetDetail}/>

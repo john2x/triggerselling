@@ -5,6 +5,11 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import arrow
 import rethinkdb as r
+import redis
+import time
+import bitmapist
+import math
+import rethink_conn
 
 class Indeed:
     def _search(self, qry, page, location='', country=None):
@@ -85,8 +90,11 @@ class Indeed:
     
     def _cron(self, role, locale, profile, country=None):
         ''' Get Todays Jobs For Job Posting '''
+
         page = 0
         #companies = self._indeed_page(role, locale, page, country)
+        start_time = time.time()
+
         indeed_results = self._search(role, page, locale, country)
         companies = self._search_results_html_to_df(indeed_results)
         #print companies
@@ -99,13 +107,18 @@ class Indeed:
 
         keys = [row.company_name.lower().replace(" ","")+"_"+profile for i, row in companies.iterrows()]
         companies["company_key"] = keys
+        companies["createdAt"] = arrow.now().timestamp
 
-        conn = r.connect(host="localhost", port=28015, db="triggeriq")
+        conn = rethink_conn.conn()
+
         #r.table("hiring_signals").insert(companies.to_dict('r')).run(conn)
         r.table("triggers").insert(companies.to_dict('r')).run(conn)
+
+        print "function:time:indeed_job_scrape", str((time.time() - start_time)*10**6), arrow.now().timestamp
+        redis.Redis().zadd("function:time:indeed_job_scrape", 
+                           str((time.time() - start_time)*10**6), 
+                           arrow.now().timestamp)
 
         # company_name+profile_id || company_name+user_id || company_name+co_id
         # || company_name+job_name+profile_id
         # persist
-
-#cos = Indeed()._cron("Inside Sales","", {})

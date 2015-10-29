@@ -27,29 +27,58 @@ q = Queue("low", connection=_conn)
 dq = Queue("default", connection=_conn)
 hq = Queue("high", connection=_conn)
 
-#change_feed: python -u change_feed.py
-@gen.coroutine
-def print_changes():
-    rethink_conn = yield r.connect(
-        host='rethinkdb_tunnel',
-        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-        db=os.environ['RETHINKDB_DB'],
-        auth_key=os.environ['RETHINKDB_AUTH_KEY']
-    )
-    feed = yield r.table('mytable').changes().run(rethink_conn)
-    while (yield feed.fetch_next()):
-        change = yield feed.next()
-        print "lol"
-        print change
 
 @gen.coroutine
+def trigger_changes():
+    if 'DEBUG' in os.environ:
+        app.debug = True
+        rethink_conn = yield r.connect(db="triggeriq")
+    else:
+        rethink_conn = yield r.connect(
+          #host='rethinkdb_tunnel',
+          host=os.environ['RETHINKDB_HOST'],
+          port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+          db=os.environ['RETHINKDB_DB'],
+          auth_key=os.environ['RETHINKDB_AUTH_KEY']
+        )
+    #feed = yield r.table('hiring_signals').changes().run(rethink_conn)
+    feed = yield r.table('triggers').changes().run(rethink_conn)
+    while (yield feed.fetch_next()):
+        change = yield feed.next()
+        print change
+        if change["old_val"] == None:
+            print "STARTING"
+            a = [change["new_val"]["company_name"], change["new_val"]["company_key"]]
+            j = dq.enqueue(CompanyNameToDomain()._update_company_record, *a)
+            j.meta["company_name_to_domain"] = True
+            j.save()
+            j = dq.enqueue(GoogleEmployeeSearch()._update_employee_record, *a)
+            j.meta["company_employee_search"] = True
+            j.save()
+        if "domain" in change["new_val"]:
+            #if change["old_val"] == None or "domain" not in change["old_val"]:
+            print "SECOND TIME ROUND"
+            val = change["new_val"]
+            args = [change["new_val"]["domain"], change["new_val"]["company_key"]]
+            j = dq.enqueue(ClearbitSearch()._update_company_record, *args)
+            j.meta["clearbit_company_search"] = True
+            j.save()
+            hq.enqueue(EmailHunter()._update_record, *args)
+            j.meta["emailhunter_search_for_pattern"] = True
+            j.save()
+
+            # TODO update UI with pusher
+        if "email_pattern" in change["new_val"]:
+            print "EMAIL_PATTERN"
+            """
+            val = change["new_val"]
+            a = [val["company_key"], val["email_pattern"]["pattern"], val["domain"]]
+            hq.enqueue(ClearbitSearch()._bulk_update_employee_record, *a)
+            """
+
+#change_feed: python -u change_feed.py
+@gen.coroutine
 def email_pattern():
-    rethink_conn = yield r.connect(
-        host='rethinkdb_tunnel',
-        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-        db=os.environ['RETHINKDB_DB'],
-        auth_key=os.environ['RETHINKDB_AUTH_KEY']
-    )
     feed = yield r.table('press_events').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
@@ -64,12 +93,17 @@ def email_pattern():
 
 @gen.coroutine
 def email_pattern():
-    rethink_conn = yield r.connect(
-        host='rethinkdb_tunnel',
-        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-        db=os.environ['RETHINKDB_DB'],
-        auth_key=os.environ['RETHINKDB_AUTH_KEY']
-    )
+    if 'DEBUG' in os.environ:
+        app.debug = True
+        rethink_conn = yield r.connect(db="triggeriq")
+    else:
+        rethink_conn = yield r.connect(
+          #host='rethinkdb_tunnel',
+          host=os.environ['RETHINKDB_HOST'],
+          port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
+          db=os.environ['RETHINKDB_DB'],
+          auth_key=os.environ['RETHINKDB_AUTH_KEY']
+        )
     feed = yield r.table('email_pattern_crawls').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
@@ -78,79 +112,7 @@ def email_pattern():
         print change
         # score email_pattern_crawl
 
-@gen.coroutine
-def trigger_changes():
-    rethink_conn = yield r.connect(
-        host='rethinkdb_tunnel',
-        port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-        db=os.environ['RETHINKDB_DB'],
-        auth_key=os.environ['RETHINKDB_AUTH_KEY']
-    )
-    #feed = yield r.table('hiring_signals').changes().run(rethink_conn)
-    feed = yield r.table('triggers').changes().run(rethink_conn)
-    while (yield feed.fetch_next()):
-        change = yield feed.next()
-        print change
-        if change["old_val"] == None:
-            print "STARTING"
-            a = [change["new_val"]["company_name"], change["new_val"]["company_key"]]
-            q.enqueue(CompanyNameToDomain()._update_company_record, change["new_val"]["company_name"],change["new_val"]["company_key"])
-            q.enqueue(GoogleEmployeeSearch()._update_employee_record, *a)
-
-        if "domain" in change["new_val"]:
-            #if change["old_val"] == None or "domain" not in change["old_val"]:
-            print "SECOND TIME ROUND"
-            val = change["new_val"]
-            args = [change["new_val"]["domain"], change["new_val"]["company_key"]]
-            dq.enqueue(ClearbitSearch()._update_company_record, *args)
-            hq.enqueue(EmailHunter()._update_record, *args)
-
-            # TODO socket.io integration
-        if "email_pattern" in change["new_val"]:
-            print "EMAIL_PATTERN"
-            """
-            val = change["new_val"]
-            a = [val["company_key"], val["email_pattern"]["pattern"], val["domain"]]
-            hq.enqueue(ClearbitSearch()._bulk_update_employee_record, *a)
-            """
-
 ''' Application Routes '''
-@Route(r"/trigger_research")
-class SimpleHandler(tornado.web.RequestHandler):
-    def get(self):
-        #self.write("Hello, world")
-        conn = yield r.connect(
-            host='rethinkdb_tunnel',
-            port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-            db=os.environ['RETHINKDB_DB'],
-            auth_key=os.environ['RETHINKDB_AUTH_KEY']
-        )
-        feed = yield r.table('triggers').changes().run(conn)
-        while (yield feed.fetch_next()):
-            val = yield feed.next()
-            q.enqueue(CompanyNameToDomain()._update_record,
-                      val["company_name"], val["company_key"])
-            q.enqueue(GoogleEmployeeSearch()._update_record,
-                      val["company_name"], "", val["company_key"])
-
-        self.write( {"print":"research"} )
-
-@Route(r"/test_with_name", name="test")
-class SimpleHandler2(tornado.web.RequestHandler):
-    def get(self):
-        #self.write("Hello, world")
-        self.write( {"lol":"lmao"} )
-
-@Route(r"/test_with_init", initialize={'init': 'dictionary'})
-class SimpleHandler3(tornado.web.RequestHandler):
-    pass
-
-@Route(r"/profiles")
-class SimpleHandler4(tornado.web.RequestHandler):
-    def get(self):
-        # TODO - get all routes which belong to certain user
-        self.write( {"lol":"lmao"} )
-
 @Route(r"/triggers")
 class SimpleHandler5(tornado.web.RequestHandler):
     def get(self):
@@ -173,6 +135,6 @@ if __name__ == "__main__":
     app.listen(8988)
     #app.listen(8000)
     #app.listen(5000)
-    tornado.ioloop.IOLoop.current().add_callback(print_changes)
+    #tornado.ioloop.IOLoop.current().add_callback(print_changes)
     tornado.ioloop.IOLoop.current().add_callback(trigger_changes)
     tornado.ioloop.IOLoop.current().start()
