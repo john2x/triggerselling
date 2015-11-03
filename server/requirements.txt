@@ -1,5 +1,6 @@
 APScheduler==3.0.3
 pystache==0.5.4
+pusher==1.2.3
 Flask-JWT==0.3.0
 bcrypt==2.0.0
 blinker==1.4
