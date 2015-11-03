@@ -12,6 +12,7 @@ USER root
 
 RUN apt-get update
 RUN apt-get install -y libcurl4-openssl-dev python-dev python-pandas python-pip
+RUN apt-get install libffi-dev
 
 RUN mkdir /app
 WORKDIR /app

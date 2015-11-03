@@ -2,25 +2,21 @@ web:
   build: web/
   ports:
     - "80:5000"
-  env_file: /root/triggeriq.env
   restart: always
   links:
     - rethinkdb_tunnel
 changefeed:
   build: changefeed/
-  env_file: /root/triggeriq.env
   restart: always
   links:
     - rethinkdb_tunnel
 clock:
   build: clock/
-  env_file: /root/triggeriq.env
   restart: always
   links:
     - rethinkdb_tunnel
 worker:
   build: worker/
-  env_file: /root/triggeriq.env
   restart: always
   links:
     - rethinkdb_tunnel
@@ -28,7 +24,6 @@ rq_dashboard:
   build: rq_dashboard/
   ports:
     - "9181:9181"
-  env_file: /root/triggeriq.env
   restart: always
   links:
     - rethinkdb_tunnel

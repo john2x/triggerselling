@@ -1,7 +1,13 @@
 APScheduler==3.0.3
 pystache==0.5.4
+Flask-JWT==0.3.0
+bcrypt==2.0.0
+blinker==1.4
 clearbit==0.1.2
+bitmapist==3.9
 python-dateutil==2.4.2
+grequests==0.2.0
+raven==5.8.1
 pytz==2015.4
 arrow==0.6.0
 beautifulsoup4==4.3.2

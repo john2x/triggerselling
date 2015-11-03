@@ -367,6 +367,7 @@ var Button = ReactBootstrap.Button
 var Thumbnail= ReactBootstrap.Thumbnail
 
 var TwitterKeywords = require("search_bar")
+var SearchBar = require("search_bar")
 
 var CreateTwitterTrigger = React.createClass({displayName: 'CreateTwitterTrigger',
   render: function() {
@@ -450,7 +451,7 @@ var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
           ), 
           React.createElement("hr", null), 
           React.createElement("h5", null, "Enter Employee Title Keyword"), 
-          React.createElement("input", {className: "form-control", placeholder: "Trigger Name"})
+          React.createElement(SearchBar, null)
         ), 
         React.createElement(Modal.Footer, null, 
           React.createElement(Button, {onClick: this.props.onHide}, "Create Trigger")

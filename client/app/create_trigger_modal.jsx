@@ -7,6 +7,7 @@ var Button = ReactBootstrap.Button
 var Thumbnail= ReactBootstrap.Thumbnail
 
 var TwitterKeywords = require("search_bar")
+var SearchBar = require("search_bar")
 
 var CreateTwitterTrigger = React.createClass({
   render: function() {
@@ -90,7 +91,7 @@ var CreateTriggerModal = React.createClass({
           </TabbedArea>
           <hr/>
           <h5>Enter Employee Title Keyword</h5>
-          <input className="form-control" placeholder="Trigger Name"/>
+          <SearchBar />
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={this.props.onHide}>Create Trigger</Button>
