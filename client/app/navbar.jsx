@@ -24,7 +24,7 @@ var Navbar = React.createClass({
             <li>EXPLORE</li>
             <li>COMPUTE</li>
             </span>
-            <li style={{float:"right"}} onClick={this.gotoProfile}>
+            <li style={{float:"right",marginRight:0}} onClick={this.gotoProfile}>
               <img src="images/user.png" style={{height:30,width:30,borderRadius:30}}/>
             </li>
           </div>

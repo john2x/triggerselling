@@ -13,6 +13,7 @@ var Signup = require("signup")
 var Profile = require("profile")
 var Navbar = require("navbar")
 var Dashboard = require("dashboard")
+var ProfileTimeline = require("profile_timeline")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -221,7 +222,8 @@ var Main = React.createClass({
       triggers:[],
       triggerEmployees: {},
       detailMode: false,
-      currentCompany: {}
+      currentCompany: {},
+      page:0,
     }
   },
 
@@ -252,13 +254,25 @@ var Main = React.createClass({
         console.log(err)
       }
     })
+    
+    this.loadTriggers()
+  },
+
+  loadTriggers: function() {
+    var _this = this;
+    if(this.props.params.profile_id)
+      url = location.origin+"/"+this.props.params.profile_id+"/triggers/"+this.state.page
+    else
+      url = location.origin+"/triggers/"+this.state.page
 
     $.ajax({
-      url: location.origin+"/triggers",
+      url: url,
       dataType:"json",
       success: function(res) {
         console.log(res)
-        _this.setState({triggers: res})
+        _this.setState({triggers: _this.state.triggers.concat(res)})
+        _this.setState({page: _this.state.page+1})
+        _this.setState({paginating: false})
 
         _.map(_this.state.triggers, function(trig) {
           $.ajax({
@@ -301,6 +315,19 @@ var Main = React.createClass({
   },
 
   componentDidMount: function() {
+    var _this = this;
+    $(window).scroll(function() {
+       if($(window).scrollTop() + $(window).height() == $(document).height()) {
+         //alert("bottom!");
+        // TODO PAGINATE
+        _this.setState({paginating: true})
+        _this.loadTriggers()
+       }
+    });
+  },
+
+  gotoCalendarView: function() {
+    location.href = "#/calendar/"+this.props.params.profile_id
   },
 
   render: function() {
@@ -327,6 +354,12 @@ var Main = React.createClass({
                           company_info={company_info}
                           employees={emps}/>
     })
+
+    console.log("PARAM")
+    profile = _.findWhere(this.state.profiles, {id: this.props.params.profile_id})
+
+    console.log("_PROFILE")
+    console.log(profile)
     return (
       <div>
           <Navbar />
@@ -336,23 +369,32 @@ var Main = React.createClass({
               profiles={this.state.profiles}
               lol={"yoyo"}
               toggleCreateTriggerModal={this.toggleCreateTriggerModal}/>
-          <div className="col-md-10" style={{paddingLeft:30}}>
+          <div className="col-md-10 col-sm-2 col-xs-2" style={{paddingLeft:30}}>
+            <h4 style={{marginLeft:"auto",marginRight:"auto",marginTop:-5,display:"block",textAlign:"center",marginBottom:10}}>
+              <i className="fa fa-wifi" style={{marginRight:4}}/> 
+              {(profile) ? profile.name : "All Signals"}
+            </h4>
+
             <div style={{display:"block",marginLeft:"auto",marginRight:100,
-                         textAlign:"center",marginTop:8}}>
+                         textAlign:"",marginTop:-30,float:"left"}}>
               <span style={{fontWeight:"800"}}>TODAY </span>
               <span style={{color:"#bbb"}}>{moment().format("MMMM Do")}</span>
             </div>
+            {(this.props.params.profile_id) ? 
+            <a href="javascript:" className="btn btn-default btn-xs" style={{float:"right",marginTop:-30}} onClick={this.gotoCalendarView}>
+              Calendar View</a> : ""
+            }
 
-            <WebsocketListener />
             <a href="javascript:" className="btn btn-success" style={{float:"right",marginTop:-90,display:"none"}}>Create Trigger</a>
             <br/>
             {CompanyCards}
             <br/>
-            {(CompanyCards.length) ? <div style={{textAlign:"center"}}><a href="javascript:" className="btn btn-primary btn-sm">LOAD MORE</a></div> : ""}
+            {(CompanyCards.length && this.state.paginating) ? <div style={{textAlign:"center"}}><a href="javascript:" className="btn btn-primary btn-sm">LOADING</a></div> : ""}
             <br/>
           </div>
         </div>
       </div>
+
         <CreateTriggerModal 
             showModal={this.state.showCreateTriggerModal}
             closeModal={this.toggleCreateTriggerModal}/>
@@ -366,9 +408,6 @@ var Main = React.createClass({
   }
 })
 
-
-
-
 // declare our routes and their hierarchy
 var routes = (
   <Route handler={App}>
@@ -376,16 +415,11 @@ var routes = (
     <Route path="landing" handler={LandingPage}/>
     <Route path="login" handler={Login}/>
     <Route path="signup" handler={Signup}/>
+    <Route path="dashboard" handler={Dashboard}/>
     <Route path="pricing" handler={Pricing}/>
     <Route path="profile" handler={Profile}/>
-    <Route path="dashboard" handler={Dashboard}/>
-    <Route path="new_dataset" handler={NewDatasetPanel}/>
-    <Route path="datasets" handler={UserDatasetTable}/>
-    <Route path="/dataset/:id" handler={DatasetDetail}/>
-    <Route path="/dataset/:id/discussion" handler={DatasetDiscussion}/>
-    <Route path="/dataset/:id/analysis" handler={DatasetAnalysis}/>
-    <Route path="/dataset/:id/collaborators" handler={DatasetCollaborators}/>
-    <Route path="/dataset/:id/visualizations" handler={DatasetVisualizations}/>
+    <Route path="/signal/:profile_id" handler={Main}/>
+    <Route path="/calendar/:profile_id" handler={ProfileTimeline}/>
   </Route>
 );
 

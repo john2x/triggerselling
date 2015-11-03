@@ -15,7 +15,6 @@ import pandas as pd
 
 from rq import Queue
 from worker import conn as _conn
-import rethink_conn
 #q = Queue(connection=_conn)
 q = Queue("low", connection=_conn)
 dq = Queue("default", connection=_conn)
@@ -106,11 +105,11 @@ class Signals:
         #q.enqueue(ClearSpark()._daily_news)
 
     def _cron(self):
-        conn = rethink_conn.conn()
+        conn = r.connect(host="localhost", port=28015, db="triggeriq")
         profiles = list(r.table("prospect_profiles").run(conn))
         for profile in profiles:
             _profile = [i["className"] for i in profile["profiles"]]
-            #print _profile
+            print _profile
             print "DEPLOYBOT"
             if 'HiringProfile' in _profile: 
                 q.enqueue(Signals()._hiring, profile, timeout=6000)

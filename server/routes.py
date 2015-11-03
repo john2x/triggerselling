@@ -13,6 +13,7 @@ from scraping.email_pattern.clearbit_search import ClearbitSearch
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
 import logging
 import sys
+import arrow
 from auth import Auth, auth
 from flask_jwt import JWT, jwt_required, current_identity
 
@@ -21,6 +22,7 @@ from raven.contrib.flask import Sentry
 from rq import Queue
 from worker import conn as _conn
 import rethink_conn
+
 q = Queue("low", connection=_conn)
 dq = Queue("default", connection=_conn)
 hq = Queue("high", connection=_conn)
@@ -30,36 +32,11 @@ app.debug = True
 sentry = Sentry(app, dsn='https://a8eac57225094af19dde9bd29aec2487:90689fd1b88c475ba0e5c13ddb27d1d4@app.getsentry.com/55649')
 Auth(app)
 
-
-# Authentication Routes
-"""
-@app.route("/login")
-def login():
-  return render_template('signup.html')
-
-@app.route("/signup")
-def signup():
-  return render_template('signup.html')
-
-@app.route("/logout")
-def logout():
-    return redirect(somewhere)
-"""
-
 # TODO
-# - auth
-# - real time web socket trigger for new results that come in the background
-# - company research stats
 # - create a table to address speed of researches
-# - company name to domain still returns errors
-#
-# - make sure that the endpoints return same stuff every time
 # - make create / delete / edit  signal modal work
 # - newrelic figure out which python process is so CPU intensive
-#
-# - press signals
-# - twitter signals
-#
+# - figure out how to make press signals work with counts
 # - integrations
 # - onboarding modal
 
@@ -92,16 +69,15 @@ def trigger_research():
     triggers = r.table("triggers").coerce_to("array").run(conn)
 
     for val in triggers:
+        if "domain" not in val.keys(): continue
+        print val["domain"]
         dq.enqueue(CompanyNameToDomain()._update_company_record,
                   val["company_name"], val["company_key"])
         dq.enqueue(GoogleEmployeeSearch()._update_employee_record,
                   val["company_name"], "", val["company_key"])
     return make_response(json.dumps({"started":True}))
-    #return "Hello from python"
 
 @app.route("/")
-
-#TODO requires authentication
 def hello():
   #return app.send_static_file('static/landing/landing_page.html')
   return send_from_directory("client", "index.html")
@@ -112,6 +88,7 @@ def hello():
 def profiles():
     conn = rethink_conn.conn()
     profiles = r.table("prospect_profiles").coerce_to("array").run(conn)
+    #profiles = profiles.order_by("createdAt")
     return make_response(json.dumps(profiles))
 
 @app.route("/stripe_upgrade", methods=["GET","POST","PUT"])
@@ -122,30 +99,55 @@ def stripe_upgrade():
     return make_response(json.dumps(profiles))
 
 # application routes
-@app.route("/profile/<_id>/companies")
+@app.route("/profile/<profile_id>/companies")
 @crossdomain(origin='*')
-def profile_companies():
+def profile_companies(profile_id):
     conn = rethink_conn.conn()
-    profiles = r.table("prospect_profiles").coerce_to("array").run(conn)
-    #return flask.jsonify(**{"lol":"lmao"})
-    return make_response(json.dumps(profiles))
+    data = r.table("triggers").filter(lambda trigger: trigger.has_fields("domain"))
+    data = data.filter({"profile":profile_id})
+    data = data.order_by("timestamp")
+    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.eq_join("profile", r.table("prospect_profiles")).zip()
+    data = data.run(conn)
+    return make_response(json.dumps(data))
 
-@app.route("/triggers")
+@app.route("/profile/<profile_id>/employees")
 @crossdomain(origin='*')
-def triggers():
+def profile_employees(profile_id):
+    conn = rethink_conn.conn()
+    data = r.table("triggers").filter(lambda trigger: trigger.has_fields("domain"))
+    data = data.filter({"profile":profile_id})
+    data = data.order_by("createdAt")
+    #data = data.order_by("timestamp")
+    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.eq_join("profile", r.table("prospect_profiles")).zip()
+    d = list(data.run(conn))
+
+    e = pd.DataFrame(list(r.table("company_employees").run(conn)))
+    ee = e[e.company_id.isin(pd.DataFrame(d).company_key.tolist())]
+    emp = ee.columns.tolist()
+    emp[0] = "company_key"
+    ee.columns = emp
+    em = pd.merge(ee, pd.DataFrame(d),on="company_key")
+
+    return make_response(json.dumps(em.to_dict("r")))
+
+@app.route("/triggers/<page>")
+@crossdomain(origin='*')
+def triggers(page=0):
     # TODO paginate
     #data = r.table("triggers").limit(50).coerce_to("array").run(conn)
+    print page
+    page = int(page)
     conn = rethink_conn.conn()
-    data = r.table("triggers").eq_join("profile",
-           r.table("prospect_profiles")).coerce_to("array").zip().run(conn)
-    #data = pd.DataFrame(data)
-    data = pd.DataFrame(data).dropna()
-    data = data[[i for i in data.columns
-                 if "company_domain_research" not in i]]
-    # TODO
-    # load triggers with completed domain research
-    data = data[data.domain.notnull()].to_dict("r")[:30]
-    print data
+    data = r.table("triggers").filter(lambda trigger: trigger.has_fields("domain"))
+    #data = data.order_by("created_at")
+    data = data.order_by(r.desc("timestamp"))
+    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.eq_join("profile", r.table("prospect_profiles"))
+    data = data.slice(page*50, (page+1)*50).limit(50).zip()
+    #data = data.without([])
+    data = list(data.run(conn))
     return make_response(json.dumps(data))
 
 @app.route("/profiles/<_id>")
@@ -185,6 +187,68 @@ def company_employees(_id):
     qry = {"company_id":_id}
     data = r.table("company_employees").filter(qry).coerce_to("array").run(conn)
     return make_response(json.dumps(data))
+
+@app.route("/timeline/<profile_id>")
+#@require_appkey
+def profile_timeline(profile_id):
+    conn = rethink_conn.conn()
+    t = r.table("triggers").filter({"profile":profile_id})
+    t = t.without(["company_domain_research_completed","emailhunter_search_completed"])
+    t = t.run(conn)
+    t = pd.DataFrame(list(t))
+    t.index = [arrow.get(i).datetime for i in t.timestamp.fillna(0)]
+
+    e = pd.DataFrame(list(r.table("company_employees").run(conn)))
+    tstamps = map(str, t.index.to_period("D").unique())
+    dtimes = [arrow.get(i).timestamp for i in t.index.to_period("D").to_timestamp().unique()]
+    keys = [t[i].company_key.unique().tolist() for i in tstamps]
+    cos = [t[t.company_key.isin(key)].fillna("").to_dict("r") for key in keys]
+    emps = [e[e.company_id.isin(key)].fillna("").to_dict("r") for key in keys]
+    final = [{"timestamp":dtimes[i], "cos":cos[i],"emps":emps[i]} for i in range(len(keys))]
+    return make_response(json.dumps(final))
+
+@app.route("/<profile_id>/triggers/<page>")
+#@require_appkey
+def profile_triggers(profile_id, page=0):
+    #TODO - add filter profile_id filter
+    page = int(page)
+    conn = rethink_conn.conn()
+
+    data = r.table("triggers").filter(lambda trigger: trigger.has_fields("domain"))
+    data = data.filter({"profile":profile_id})
+    data = data.order_by(r.desc("timestamp"))
+    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.eq_join("profile", r.table("prospect_profiles")).zip()
+    data = data.slice(page*50, (page+1)*50).limit(50)
+    data = list(data.run(conn))
+    return make_response(json.dumps(data))
+
+@app.route("/<profile_id>/count")
+#@require_appkey
+def profile_counts(profile_id):
+    #TODO - add filter profile_id filter
+    conn = rethink_conn.conn()
+    t = pd.DataFrame(list(r.table("triggers").filter({"profile":profile_id}).run(conn)))
+    e = r.table("company_employees").group("company_id").count().run(conn)
+    e = pd.Series(e)[list(t.company_key.unique())]
+    data = {"count":t.shape[0], "employee_count":len(e)}
+    return make_response(json.dumps(data))
+
+@app.route("/<profile_id>/trigger/employees")
+#@require_appkey
+def profile_trigger_employees(profile_id):
+    #TODO - add filter profile_id filter
+    conn = rethink_conn.conn()
+    t = pd.DataFrame(list(r.table("triggers").run(conn)))
+    # get employees
+    return make_response(json.dumps(t.to_dict()))
+
+@app.route("/redis/stats/<stat>")
+@crossdomain(origin='*')
+def redis_stats(stat):
+    rd = redis.Redis()
+    zr = pd.DataFrame(rd.zrange(stat, 0, -1, withscores=True)).astype("float")
+    return make_response(zr.to_dict("r"))
 
 @app.route("/api_key_test")
 #@require_appkey

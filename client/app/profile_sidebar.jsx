@@ -5,13 +5,22 @@ var ProfileSidebar = React.createClass({
     this.props.toggleCreateTriggerModal()
   },
 
+  profileHover: function() {
+    console.log("hover")
+  },
+
   render: function() {
     console.log(this.props.profiles)
+    var _this = this;
     profiles = _.map(this.props.profiles, function(profile) {
-      return <HiringProfileCard profile={profile}/>
+      return ( 
+              <div >
+          <HiringProfileCard profile={profile}/>
+        </div>
+       )
     })
     return (
-          <div className="col-md-2">
+          <div className="col-md-2 col-sm-2 col-xs-2">
             <span style={{fontWeight:"800"}}>TRIGGERS 
               <span style={{color:"#bbb",marginLeft:10,fontWeight:200}}>({this.props.profiles.length}) </span>
             </span>
@@ -21,7 +30,7 @@ var ProfileSidebar = React.createClass({
                onClick={this.toggleCreateTriggerModal}
                style={{float:"right"}}>
               <i className="fa fa-plus"/></a>
-            <hr/>
+            <hr style={{marginBottom:0}}/>
 
             {profiles}
           </div>
@@ -31,15 +40,71 @@ var ProfileSidebar = React.createClass({
 })
 
 var HiringProfileCard = React.createClass({
+  getInitialState: function() {
+    return {
+      count: "~",
+      hover: false
+    }
+  },
+
+  componentDidMount: function() {
+    profile = this.props.profile
+    var _this = this;
+    $.ajax({
+      url:location.origin+"/"+profile.id+"/count",
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({count: res.count})
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+
+    var pusher = new Pusher('f1141b13a2bc9aa3b519', { encrypted: true });
+    var channel = pusher.subscribe('profile_count');
+
+    var _this = this;
+    channel.bind(_this.props.profile.id, function(data) {
+      //console.log(data)
+      _this.setState({ "count" : data,
+                       "profile_last_updated": moment().unix()})
+    });
+
+
+  },
+
+  gotoProfile: function() {
+    location.href="#signal/"+this.props.profile.id
+  },
+
+  mouseOver: function() {
+    this.setState({hover: true})
+  },
+
+  mouseOut: function() {
+    this.setState({hover: false})
+  },
+
   render: function() {
-    console.log(this.props.profile)
+    //console.log(this.props.profile)
     roles = _.map(this.props.profile.profiles[0], function(prof) {
       return <span></span>
     })
+
+    _style ={cursor:"pointer",paddingTop:5,paddingBottom:5,paddingLeft:10,paddingRight:10, borderLeft:"3px solid white",borderBottom:"1px solid #eee"}
+    if(this.state.hover) {
+      _style.borderLeft = "3px solid #0072f0"
+      _style.backgroundColor="rgba(238,238,238,0.4)"
+    }
+
     return (
-      <div style={{cursor:"pointer"}}>
-        <h5>
-          {this.props.profile.name}</h5>
+      <div style={_style} onMouseOver={this.mouseOver} onMouseOut={this.mouseOut}
+          onClick={this.gotoProfile}>
+        <h5> {this.props.profile.name} 
+          <small style={{float:"right",marginTop:2}}>({this.state.count})</small> 
+        </h5>
         <h5 style={{marginBottom:0,marginTop:5}}>
           <small>
           <i className="fa fa-suitcase" style={{width:15}}/> &nbsp;
@@ -50,7 +115,6 @@ var HiringProfileCard = React.createClass({
           <i className="fa fa-map-marker" style={{width:15}}/> &nbsp;
             {this.props.profile.profiles[0].locales.join(", ")}</small>
         </h5>
-        <hr/>
       </div>
     )
   }
@@ -63,7 +127,6 @@ var PressProfileCard = React.createClass({
         <h5> <i className="fa fa-bullhorn" />&nbsp;
           Press Trigger Name</h5>
         <h5><small>Company Info blah blah</small></h5>
-      <hr/>
       </div>
     )
   }

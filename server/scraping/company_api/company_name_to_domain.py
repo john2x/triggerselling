@@ -14,6 +14,10 @@ import rethink_conn
 
 un, pw = "customero", "iUyET3ErxR"
 CRAWLERA_URL = "http://{0}:{1}@paygo.crawlera.com/fetch?".format(un, pw)
+
+#un, pw = "5846ea676dc7405eac44d83201127e7f", ""
+#CRAWLERA_URL = "http://{0}:{1}@proxy.crawlera.com/fetch?".format(un, pw)
+
 SPLASH_URL = "http://localhost:8950/render.html?"
 
 class CompanyNameToDomain:

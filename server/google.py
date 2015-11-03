@@ -27,8 +27,6 @@ class Crawlera:
         return r
 
 class Google:
-
-
     def linkedin_search(self, qry, pages=1):
         qry = qry + ' site:linkedin.com/in/ OR site:linkedin.com/pub/'
         qry = qry + '-site:linkedin.com/pub/dir/'
@@ -102,7 +100,6 @@ class Google:
         leads = pd.DataFrame()
         listings = BeautifulSoup(search_result_html).findAll('li',{'class':'g'})
         for lead in listings:
-            #print self._remove_non_ascii(lead.text)
             link_text = lead.find('h3')
             if link_text == None: continue
             link_text = link_text.text
@@ -120,8 +117,3 @@ class Google:
             leads = leads.append(dict(zip(columns, values)), ignore_index=True)
         return leads
 
-    def _remove_non_ascii(self, text):
-        try:
-            return ''.join(i for i in text if ord(i)<128)
-        except:
-            return text

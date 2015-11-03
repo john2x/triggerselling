@@ -13,6 +13,7 @@
     "fontawesome": "~4.4.0",
     "jquery-ui": "~1.11.4",
     "moment": "~2.10.6",
+    "papaparse": "~4.1.2",
     "react": "~0.13.3",
     "react-bootstrap": "~0.24.2",
     "react-d3": "~0.2.2",

@@ -6,6 +6,7 @@ import rethinkdb as r
 from tornado import ioloop, gen
 from schedule import *
 from routes import app
+import pusher
 from scraping.company_api.company_name_to_domain import CompanyNameToDomain
 from scraping.email_pattern.email_hunter import EmailHunter
 from scraping.email_pattern.clearbit_search import ClearbitSearch
@@ -16,33 +17,30 @@ from websocket import *
 
 import rethinkdb as r
 import json
+import rethink_conn
 
 ''' RethinkDB Changefeeds Callbacks '''
 r.set_loop_type("tornado")
 
 from rq import Queue
 from worker import conn as _conn
-#q = Queue(connection=_conn)
 q = Queue("low", connection=_conn)
 dq = Queue("default", connection=_conn)
 hq = Queue("high", connection=_conn)
 
+p = pusher.Pusher(
+  app_id='149760',
+  key='f1141b13a2bc9aa3b519',
+  secret='11723dad11b83473ab2f',
+  ssl=True,
+  port=443
+)
 
 @gen.coroutine
 def trigger_changes():
-    if 'DEBUG' in os.environ:
-        app.debug = True
-        rethink_conn = yield r.connect(db="triggeriq")
-    else:
-        rethink_conn = yield r.connect(
-          #host='rethinkdb_tunnel',
-          host=os.environ['RETHINKDB_HOST'],
-          port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-          db=os.environ['RETHINKDB_DB'],
-          auth_key=os.environ['RETHINKDB_AUTH_KEY']
-        )
+    conn = yield r.connect(**rethink_conn.args())
     #feed = yield r.table('hiring_signals').changes().run(rethink_conn)
-    feed = yield r.table('triggers').changes().run(rethink_conn)
+    feed = yield r.table('triggers').changes().run(conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
         print change
@@ -52,9 +50,13 @@ def trigger_changes():
             j = dq.enqueue(CompanyNameToDomain()._update_company_record, *a)
             j.meta["company_name_to_domain"] = True
             j.save()
+
+            a.append(None)
+            a.append(change["new_val"]["profile"])
             j = dq.enqueue(GoogleEmployeeSearch()._update_employee_record, *a)
             j.meta["company_employee_search"] = True
             j.save()
+
         if "domain" in change["new_val"]:
             #if change["old_val"] == None or "domain" not in change["old_val"]:
             print "SECOND TIME ROUND"
@@ -63,14 +65,26 @@ def trigger_changes():
             j = dq.enqueue(ClearbitSearch()._update_company_record, *args)
             j.meta["clearbit_company_search"] = True
             j.save()
+
             hq.enqueue(EmailHunter()._update_record, *args)
             j.meta["emailhunter_search_for_pattern"] = True
             j.save()
 
+        cdrc = "company_domain_research_completed"
+        ehsc = "emailhunter_search_completed"
+
+        if ehsc in change["new_val"].keys() and cdrc in change["new_val"].keys():
+            # TODO do filtering
+            # TODO update counts
             # TODO update UI with pusher
+            qry = r.table("triggers").filter({"profile":change["new_val"]})
+            count = qry.count().run(conn)
+            data = {"count": count}
+            p.trigger('profile_count', change["new_val"]["profile"], data)
+
         if "email_pattern" in change["new_val"]:
-            print "EMAIL_PATTERN"
             """
+            print "EMAIL_PATTERN"
             val = change["new_val"]
             a = [val["company_key"], val["email_pattern"]["pattern"], val["domain"]]
             hq.enqueue(ClearbitSearch()._bulk_update_employee_record, *a)
@@ -91,19 +105,16 @@ def email_pattern():
         elif "marketwire" in df.link:
             q.enqueue(MarketWired()._parse_article_html, objectId, row.url)
 
+        # TODO - screen scrape press
+        # ----------------------------
+        # TODO - on completion [clearbit search]
+        # TODO - email pattern
+        # ----------------------------
+        # TODO - filter find out which profiles this event fits into
+
 @gen.coroutine
 def email_pattern():
-    if 'DEBUG' in os.environ:
-        app.debug = True
-        rethink_conn = yield r.connect(db="triggeriq")
-    else:
-        rethink_conn = yield r.connect(
-          #host='rethinkdb_tunnel',
-          host=os.environ['RETHINKDB_HOST'],
-          port=os.environ['RETHINKDB_TUNNEL_PORT_28015_TCP_PORT'],
-          db=os.environ['RETHINKDB_DB'],
-          auth_key=os.environ['RETHINKDB_AUTH_KEY']
-        )
+    conn = yield r.connect(**rethink_conn.args())
     feed = yield r.table('email_pattern_crawls').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()

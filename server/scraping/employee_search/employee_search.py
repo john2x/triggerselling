@@ -83,16 +83,7 @@ class LinkedinTitleDir:
     return p
 
 class GoogleEmployeeSearch:
-    def test(self, company_name):
-        job = rq.get_current_job()
-        print job.meta.keys()
-        if "queue_name" in job.meta.keys():
-          print RQueue()._has_completed(job.meta["queue_name"])
-          print RQueue()._has_completed("queue_name")
-          if RQueue()._has_completed(job.meta["queue_name"]):
-            q.enqueue(Jigsaw()._upload_csv, job.meta["company_name"])
-
-    def _employees(self, company_name="", keyword="", api_key=""):
+    def _employees(self, company_name="", keyword=None):
         ''' Linkedin Scrape '''
         # TODO - add linkedin directory search
         ''' Linkedin Scrape'''
@@ -107,7 +98,7 @@ class GoogleEmployeeSearch:
         _name = '(?i){0}'.format(company_name)
         print results.columns
         if results.empty: 
-            print "No employees found for", company_name, keyword, api_key
+            print "No employees found for", company_name, keyword
             return results
 
         if " " in company_name:
@@ -116,36 +107,32 @@ class GoogleEmployeeSearch:
         else:
             results['company_score'] = [fuzz.ratio(_name, company) 
                                         for company in results.company_name]
-        if keyword != "":
-            results['score'] = [fuzz.ratio(keyword, title) 
+        if keyword:
+            results['score'] = [fuzz.partial_ratio(keyword, title) 
                                 for title in results.title]
             results = results[results.score > 75]
-
-        results = results[results.company_score > 64]
+        results = results[results.company_score > 49]
         results = results.drop_duplicates()
-        results["company_id"] = api_key
-        """"
-        data = {'data': results.to_dict('r'), 'company_name':company_name}
-        CompanyExtraInfoCrawl()._persist(data, "employees", "")
-
-        job = rq.get_current_job()
-        print job.meta.keys()
-        if "queue_name" in job.meta.keys():
-          if RQueue()._has_completed(job.meta["queue_name"]):
-            q.enqueue(Jigsaw()._upload_csv, job.meta["company_name"])
-        """
         return results
 
-    def _update_employee_record(self, company_name,  _id, keyword=""):
-        start_time = time.time()
-
-        res = self._employees(company_name, keyword, _id)
-        print "EMPLOYEES FOUND", company_name, res.shape
+    def _update_employee_record(self, company_name,  _id, keyword=None, profile_id=None):
         conn = r.connect(host="localhost", port=28015, db="triggeriq")
+        _profile = r.table("prospect_profiles").get(profile_id).run(conn)
+        for title in _profile["titles"]:
+            args = [company_name, _id, title, profile_id]
+            q.enqueue(GoogleEmployeeSearch()._get_employee_record, *args)
+        
+    def _get_employee_record(self, company_name,  _id, keyword=None, profile_id=None):
+        start_time = time.time()
+        conn = r.connect(host="localhost", port=28015, db="triggeriq")
+        res = self._employees(company_name, keyword)
+        res["company_id"] = _id
+        res["profile_id"] = profile_id
+        print "EMPLOYEES FOUND", company_name, res.shape
+
         r.table('company_employees').insert(res.to_dict("r")).run(conn)
         bitmapist.mark_event("function:time:company_employee_search", 
                              int((time.time() - start_time)*10**6))
-
         redis.Redis().zadd("function:time:company_employee_search", 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)

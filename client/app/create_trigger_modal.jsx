@@ -80,7 +80,7 @@ var CreateTriggerModal = React.createClass({
         <Modal.Body>
           <h5>Enter Trigger Name</h5>
           <input className="form-control" placeholder="Trigger Name"/>
-          <br/>
+          <hr/>
           <TabbedArea defaultActiveKey={1}>
             <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
             <TabPane eventKey={2} tab='Hiring'><CreateHiringTrigger /></TabPane>
@@ -88,6 +88,9 @@ var CreateTriggerModal = React.createClass({
             <TabPane eventKey={4} tab='Industry'><CreateIndustryTrigger /></TabPane>
             <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane>
           </TabbedArea>
+          <hr/>
+          <h5>Enter Employee Title Keyword</h5>
+          <input className="form-control" placeholder="Trigger Name"/>
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={this.props.onHide}>Create Trigger</Button>

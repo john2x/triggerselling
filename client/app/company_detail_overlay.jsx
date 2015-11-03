@@ -27,7 +27,7 @@ var CompanyDetailOverlay = React.createClass({
         return <div style={{paddingLeft:5,width:"80%"}}>
           <UserPic/>
           <h5 style={{marginBottom:0}}><span style={{fontWeight:"bold"}}>{emp.name}</span> - <small>{emp.title}</small></h5>
-          <h6 style={{marginTop:4}}>{emp.locale}</h6>
+          <h6 style={{marginTop:4}}>{emp.locale} - <small>{emp.company_name}</small></h6>
           <input className="form-control input-sm"  value={"example@example.com"}
             style={{float:"right",marginTop:-35,marginRight:60, width:150}} /> 
 
@@ -80,7 +80,7 @@ var CompanyDetailOverlay = React.createClass({
             <i className="fa fa-globe" />
           </a>
           </div></h3>
-        <h5 style={{width:"93%"}}>{ci.description}</h5>
+        <h5 style={{width:"73%",overflow:"auto",height:45}}>{ci.description}</h5>
         <hr/>
         <div style={{height:"83%",overflow:"auto"}}>
           {employees}

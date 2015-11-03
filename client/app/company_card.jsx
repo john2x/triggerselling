@@ -8,7 +8,8 @@ var CompanyCard = React.createClass({
   },
 
   render: function() {
-    company_info = JSON.parse(this.props.company_info)
+    if(this.props.company_info.length)
+      company_info = JSON.parse(this.props.company_info)
     return (
       <div className="" 
             onClick={this.toggleCompanyDetailOverlay}>
@@ -36,6 +37,11 @@ var CompanyCard = React.createClass({
 
 
                     <td style={{padding:5}}>
+                      <div style={{width:100}}>
+                        {moment.unix(this.props.trigger.timestamp).fromNow()} 
+                      </div>
+                    </td>
+                    <td style={{padding:5}}>
                       <a href="javascript:" className="btn btn-primary btn-sm"><i className="fa fa-download"/></a>
                     </td>
                   </tr>
@@ -55,6 +61,11 @@ var DetailLabel = React.createClass({
 })
 
 var HiringSignalInfo = React.createClass({
+  getInitialState: function() {
+    return {
+    }
+  },
+
   render: function() {
     return (
       <td style={{padding:5,width:"35%"}}>

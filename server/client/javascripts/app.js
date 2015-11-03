@@ -142,7 +142,8 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
   },
 
   render: function() {
-    company_info = JSON.parse(this.props.company_info)
+    if(this.props.company_info.length)
+      company_info = JSON.parse(this.props.company_info)
     return (
       React.createElement("div", {className: "", 
             onClick: this.toggleCompanyDetailOverlay}, 
@@ -170,6 +171,11 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
 
 
                     React.createElement("td", {style: {padding:5}}, 
+                      React.createElement("div", {style: {width:100}}, 
+                        moment.unix(this.props.trigger.timestamp).fromNow()
+                      )
+                    ), 
+                    React.createElement("td", {style: {padding:5}}, 
                       React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-sm"}, React.createElement("i", {className: "fa fa-download"}))
                     )
                   )
@@ -189,6 +195,11 @@ var DetailLabel = React.createClass({displayName: 'DetailLabel',
 })
 
 var HiringSignalInfo = React.createClass({displayName: 'HiringSignalInfo',
+  getInitialState: function() {
+    return {
+    }
+  },
+
   render: function() {
     return (
       React.createElement("td", {style: {padding:5,width:"35%"}}, 
@@ -268,7 +279,7 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
         return React.createElement("div", {style: {paddingLeft:5,width:"80%"}}, 
           React.createElement(UserPic, null), 
           React.createElement("h5", {style: {marginBottom:0}}, React.createElement("span", {style: {fontWeight:"bold"}}, emp.name), " - ", React.createElement("small", null, emp.title)), 
-          React.createElement("h6", {style: {marginTop:4}}, emp.locale), 
+          React.createElement("h6", {style: {marginTop:4}}, emp.locale, " - ", React.createElement("small", null, emp.company_name)), 
           React.createElement("input", {className: "form-control input-sm", value: "example@example.com", 
             style: {float:"right",marginTop:-35,marginRight:60, width:150}}), 
 
@@ -321,7 +332,7 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
             React.createElement("i", {className: "fa fa-globe"})
           )
           )), 
-        React.createElement("h5", {style: {width:"93%"}}, ci.description), 
+        React.createElement("h5", {style: {width:"73%",overflow:"auto",height:45}}, ci.description), 
         React.createElement("hr", null), 
         React.createElement("div", {style: {height:"83%",overflow:"auto"}}, 
           employees
@@ -429,14 +440,17 @@ var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
         React.createElement(Modal.Body, null, 
           React.createElement("h5", null, "Enter Trigger Name"), 
           React.createElement("input", {className: "form-control", placeholder: "Trigger Name"}), 
-          React.createElement("br", null), 
+          React.createElement("hr", null), 
           React.createElement(TabbedArea, {defaultActiveKey: 1}, 
             React.createElement(TabPane, {eventKey: 1, tab: "Twitter"}, React.createElement(CreateTwitterTrigger, null)), 
             React.createElement(TabPane, {eventKey: 2, tab: "Hiring"}, React.createElement(CreateHiringTrigger, null)), 
             React.createElement(TabPane, {eventKey: 3, tab: "Press"}, React.createElement(CreatePressTrigger, null)), 
             React.createElement(TabPane, {eventKey: 4, tab: "Industry"}, React.createElement(CreateIndustryTrigger, null)), 
             React.createElement(TabPane, {eventKey: 5, tab: "News"}, React.createElement(CreateIndustryTrigger, null))
-          )
+          ), 
+          React.createElement("hr", null), 
+          React.createElement("h5", null, "Enter Employee Title Keyword"), 
+          React.createElement("input", {className: "form-control", placeholder: "Trigger Name"})
         ), 
         React.createElement(Modal.Footer, null, 
           React.createElement(Button, {onClick: this.props.onHide}, "Create Trigger")
@@ -464,13 +478,15 @@ var Dashboard = React.createClass({displayName: 'Dashboard',
     return {
       profile_value_counts: [],
       rq_job_counts: ["~","~","~",],
+      total_counts: ["~","~","~","~","~",],
+      percentage_counts: ["~","~","~","~","~",],
     }
   },
 
   componentDidMount: function() {
    Pusher.log = function(message) {
       if (window.console && window.console.log) {
-        window.console.log(message);
+        //window.console.log(message);
       }
     };
 
@@ -481,12 +497,20 @@ var Dashboard = React.createClass({displayName: 'Dashboard',
 
     var _this = this;
     channel.bind('profile_value_counts', function(data) {
-      console.log(data)
+      //console.log(data)
       _this.setState({ "profile_value_counts" : data, "profile_last_updated": moment().unix()})
     });
     channel.bind('rq_job_counts', function(data) {
-      console.log(data)
+      //console.log(data)
       _this.setState({ "rq_job_counts" : data, "rq_last_updated": moment().unix()})
+    });
+    channel.bind('total_counts', function(data) {
+      console.log(data)
+      _this.setState({ "total_counts" : data, "tc_last_updated": moment().unix()})
+    });
+    channel.bind('percentage_counts', function(data) {
+      console.log(data)
+      _this.setState({ "percentage_counts" : data, "pc_last_updated": moment().unix()})
     });
     channel.bind('average_counts', function(data) {
       _this.setState({"average_counts" : data.message})
@@ -494,58 +518,103 @@ var Dashboard = React.createClass({displayName: 'Dashboard',
     channel.bind('last_updated', function(data) {
       _this.setState({"last_updated" : data.message})
     });
+    metrics = ["function:time:company_name_to_domain",
+          "function:time:clearbit_search_company_record",
+          "function:time:bulk_update_employee_record",
+          "function:time:company_employee_search",
+          "function:time:simplyhired_job_scrape",
+          "function:time:indeed_job_scrape",
+          "function:time:ziprecruiter_job_scrape"]
+    _.map(metrics, function(metric) {
+        channel.bind(metric, function(data) {
+          //console.log(metric, data)
+          _data = {}
+          _data[metric] = data
+          _this.setState(_data)
+        });
+    })
+    /*
+    _.map(metrics, function(metric) {
+      $.ajax({
+        url: location.origin+"/redis/stats/"+metric,
+        success: function(res) {
+
+        },
+        error: function() {
+
+        }
+      })
+    })
+    */
   },
 
   render: function () {
     var _this = this;
+    metrics = ["function:time:company_name_to_domain",
+          "function:time:clearbit_search_company_record",
+          "function:time:bulk_update_employee_record",
+          "function:time:company_employee_search",
+          "function:time:simplyhired_job_scrape",
+          "function:time:indeed_job_scrape",
+          "function:time:ziprecruiter_job_scrape"]
+
+    metric_rows = _.map(metrics, function(metric) {
+      //console.log(_this.state[metric])
+      m = (_this.state[metric]) ? _this.state[metric] : {}
+      return ( 
+        React.createElement("tr", null, 
+          React.createElement("td", null, metric), 
+          React.createElement("td", null, m.mean), 
+          React.createElement("td", null, m.median), 
+          React.createElement("td", null, m.min), 
+          React.createElement("td", null, m.max), 
+          React.createElement("td", null, m.per_second)
+        )
+      )
+    })
+    raw_metric_rows = _.map(metrics, function(metric) {
+      m = (_this.state[metric]) ? _this.state[metric] : {}
+      //console.log(m.raw)
+      return (
+          React.createElement("div", {className: "col-md-3"}, 
+            React.createElement("h4", null, metric.split("function:time")[1]), 
+            React.createElement("div", {className: "panel panel-default"}, 
+            React.createElement("table", {className: "table table-striped"}, 
+              _.map(m.raw, function(stat) {
+                return (
+                  React.createElement("tr", null, 
+                    React.createElement("td", null, moment.unix(stat.b).fromNow()), 
+                    React.createElement("td", null, (stat.a/1000000).toFixed(3))
+                  )
+                )
+                })
+              
+            )
+            )
+          )
+      )
+    })
     return (
     React.createElement("div", {className: "container"}, 
       React.createElement("h2", null, "Dashboard"), 
       React.createElement("hr", null), 
-      React.createElement("h4", null, "Number of Triggers Per Profile ", React.createElement("small", null, "Last Updated: ", moment.unix(this.state.profile_last_updated).fromNow())), 
-      React.createElement("div", {className: "panel panel-default"}, 
-      React.createElement("table", {className: "table table-striped"}, 
-        React.createElement("tbody", null, 
-        _.map(_.keys(this.state.profile_value_counts), function(prof) { 
-          return (React.createElement("tr", null, 
-              React.createElement("td", null, prof), 
-              React.createElement("td", null, _this.state.profile_value_counts[prof])
-          ) )
-        }) 
-        
-        )
-      )
-      ), 
-      React.createElement("br", null), 
-
       React.createElement("div", {className: "row"}, 
-          React.createElement("div", {className: "col-md-6"}, 
-              React.createElement("h4", null, "Number of Triggers Per Profile"), 
-              React.createElement("div", {className: "panel panel-default"}, 
-              React.createElement("table", {className: "table table-striped"}, 
-                React.createElement("tr", null, 
-                  React.createElement("td", null, "Number of Triggers / per minute"), 
-                  React.createElement("td", null, "0")
-                ), 
-                React.createElement("tr", null, 
-                  React.createElement("td", null, "Value Count per Stage"), 
-                  React.createElement("td", null, "0")
-                ), 
-                React.createElement("tr", null, 
-                  React.createElement("td", null, "Average Time Spent On Company Name To Domain"), 
-                  React.createElement("td", null, "0")
-                ), 
-                React.createElement("tr", null, 
-                  React.createElement("td", null, "Average Time Spent On Company Employee"), 
-                  React.createElement("td", null, "0")
-                ), 
-                React.createElement("tr", null, 
-                  React.createElement("td", null, "Average Time Spent On Email Pattern"), 
-                  React.createElement("td", null, "0")
-                )
-              )
-              )
-          ), 
+        React.createElement("div", {className: "col-md-6"}, 
+          React.createElement("h4", null, "Number of Triggers Per Profile ", React.createElement("small", null, "Last Updated: ", moment.unix(this.state.profile_last_updated).fromNow())), 
+          React.createElement("div", {className: "panel panel-default"}, 
+          React.createElement("table", {className: "table table-striped"}, 
+            React.createElement("tbody", null, 
+            _.map(_.keys(this.state.profile_value_counts), function(prof) { 
+              return (React.createElement("tr", null, 
+                  React.createElement("td", null, prof), 
+                  React.createElement("td", null, _this.state.profile_value_counts[prof])
+              ) )
+            }) 
+            
+            )
+          )
+          )
+        ), 
           React.createElement("div", {className: "col-md-6"}, 
               React.createElement("h4", null, "RQ Stats"), 
               React.createElement("div", {className: "panel panel-default"}, 
@@ -565,72 +634,72 @@ var Dashboard = React.createClass({displayName: 'Dashboard',
                   )
                 ), 
                 React.createElement("tr", null, 
-                  React.createElement("td", null, "High Jobs Per Minute"), 
-                  React.createElement("td", null, "0")
+                  React.createElement("td", null, "Total Counts"), 
+                  React.createElement("td", null, 
+                    React.createElement("span", {className: "label label-info"}, 
+                      this.state.total_counts[0]
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-primary"}, 
+                      this.state.total_counts[1]
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-primary"}, 
+                      this.state.total_counts[2]
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-primary"}, 
+                      this.state.total_counts[3]
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-success"}, 
+                      this.state.total_counts[4]
+                    ), " "
+                  )
                 ), 
                 React.createElement("tr", null, 
-                  React.createElement("td", null, "Average Time Spent On Company Name To Domain"), 
-                  React.createElement("td", null, "0")
-                ), 
-                React.createElement("tr", null, 
-                  React.createElement("td", null, "Average Time Spent On Company Employee"), 
-                  React.createElement("td", null, "0")
-                ), 
-                React.createElement("tr", null, 
-                  React.createElement("td", null, "Average Time Spent On Email Pattern"), 
-                  React.createElement("td", null, "0")
+                  React.createElement("td", null, "Percentage Counts"), 
+                  React.createElement("td", null, 
+                    React.createElement("span", {className: "label label-info"}, 
+                      parseFloat(this.state.percentage_counts[0]).toFixed(2)
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-primary"}, 
+                      parseFloat(this.state.percentage_counts[1]).toFixed(2)
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-primary"}, 
+                      parseFloat(this.state.percentage_counts[2]).toFixed(2)
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-primary"}, 
+                      parseFloat(this.state.percentage_counts[3]).toFixed(2)
+                    ), "  ", 
+                    React.createElement("span", {className: "label label-success"}, 
+                      parseFloat(this.state.percentage_counts[4]).toFixed(2)
+                    ), " "
+                  )
                 )
               )
               )
           )
       ), 
+      React.createElement("br", null), 
       React.createElement("div", {className: "row"}, 
-          React.createElement("div", {className: "col-md-3"}, 
-            React.createElement("h4", null, "Company Name To Domain"), 
-            React.createElement("div", {className: "panel panel-default"}, 
-            React.createElement("table", {className: "table table-striped"}, 
-              React.createElement("tr", null, 
-                React.createElement("td", null, "Number of Triggers / per minute"), 
-                React.createElement("td", null, "0")
+          React.createElement("div", {className: "col-md-12"}, 
+              React.createElement("h4", null, "Number of Triggers Per Profile"), 
+              React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("table", {className: "table table-striped"}, 
+                React.createElement("thead", null, 
+                  React.createElement("th", null, "Function / Job"), 
+                  React.createElement("th", null, "Mean"), 
+                  React.createElement("th", null, "Median"), 
+                  React.createElement("th", null, "Min"), 
+                  React.createElement("th", null, "Max"), 
+                  React.createElement("th", null, "Per Second")
+                ), 
+                metric_rows
               )
-            )
-            )
-          ), 
-          React.createElement("div", {className: "col-md-3"}, 
-            React.createElement("h4", null, "Secondary"), 
-            React.createElement("div", {className: "panel panel-default"}, 
-            React.createElement("table", {className: "table table-striped"}, 
-              React.createElement("tr", null, 
-                React.createElement("td", null, "Number of Triggers / per minute"), 
-                React.createElement("td", null, "0")
               )
-            )
-            )
-          ), 
-
-          React.createElement("div", {className: "col-md-3"}, 
-            React.createElement("h4", null, "Third"), 
-            React.createElement("div", {className: "panel panel-default"}, 
-            React.createElement("table", {className: "table table-striped"}, 
-              React.createElement("tr", null, 
-                React.createElement("td", null, "Number of Triggers / per minute"), 
-                React.createElement("td", null, "0")
-              )
-            )
-            )
-          ), 
-
-          React.createElement("div", {className: "col-md-3"}, 
-            React.createElement("h4", null, "Company Name To Domain"), 
-            React.createElement("div", {className: "panel panel-default"}, 
-            React.createElement("table", {className: "table table-striped"}, 
-              React.createElement("tr", null, 
-                React.createElement("td", null, "Number of Triggers / per minute"), 
-                React.createElement("td", null, "0")
-              )
-            )
-            )
           )
+      ), 
+      React.createElement("div", {className: "row"}
+      ), 
+      React.createElement("div", {className: "row"}, 
+        raw_metric_rows
 
       )
     ))
@@ -672,7 +741,297 @@ module.exports = DatePair
 
 });
 
-;require.register("initialize", function(exports, require, module) {
+;require.register("email.js", function(exports, require, module) {
+/** @jsx React.DOM */
+
+var Templates = require('./templates.js.jsx');
+var Schedules = require('./schedule.js.jsx');
+var Campaigns = require('./campaigns.js.jsx');
+var SentMail = require('./sent_mail.js.jsx');
+var FollowupFeed = require('./followup_feed.js.jsx');
+var CampaignDetail = require('./campaign_detail.js.jsx');
+var CreateCampaignModal = require('./create_campaign.js.jsx');
+
+module.exports = React.createClass({displayName: 'exports',
+  getInitialState: function() {
+    return {
+      selectedScreen: 'Campaigns',
+      selectedCampaign:'',
+      prospectLists: [],
+      campaigns: []
+    }
+  },
+
+  deleteCampaign: function(objectId) {
+   // sweetAlert
+    console.log(this.state.campaigns)
+    campaigns = _.filter(this.state.campaigns, function(campaign) {
+      return campaign.objectId != objectId
+    })
+    console.log(campaigns)
+    this.setState({campaigns: campaigns})
+    $.ajax({
+      url:'https//api.parse.com/1/classes/Campaign/'+objectId,
+      type:'DELETE',
+      headers: Parse.headers,
+      success: function(res) { console.log(res) },
+      error: function(err) { console.log(err) }
+    })
+   // persist
+   // error log
+  },
+
+  componentDidMount: function() {
+    thiss = this;
+     company = JSON.parse(localStorage.currentUser).company
+     user = Parse._pointer('_User', JSON.parse(localStorage.currentUser).objectId)
+     qry = {
+       where : JSON.stringify({
+         user: user,
+         company: company
+       }),
+       include: 'prospect_list,followups,followups.template,batches',
+       order: '-createdAt'
+     }
+     $.ajax({
+       url:'https//api.parse.com/1/classes/Campaign',
+      headers: Parse.headers,
+      data: qry,
+      success: function(res) {
+        console.log(res.results)
+        thiss.setState({campaigns: res.results})
+       // Find All Prospects In ProspectList that are not in any batches
+      },
+      error: function(err) {
+        console.log('error')
+        console.log(err)
+      }
+     });
+    $.ajax({
+      url: 'https//api.parse.com/1/classes/ProspectList',
+      data: {
+        order: '-createdAt',
+        where : JSON.stringify({
+          user: Parse.user,
+          user_company: Parse._user_company,
+        })
+      },
+      headers: Parse.headers,
+      success: function(res) {
+        console.log('PROSPECT LISTS')
+        console.log(res.results)
+        thiss.setState({prospectLists: res.results})
+      },
+      error: function(err) { }
+    })
+
+
+  },
+  
+  toggleScreen: function(screen) {
+    this.setState({selectedScreen : screen})
+  },
+
+  changeSelectedCampaign: function(screen, selectedCampaign) {
+    console.log(selectedCampaign)
+    this.setState({
+      selectedCampaign : selectedCampaign,
+      selectedScreen: screen,
+    })
+  },
+
+  render: function() {
+    thiss = this
+    console.log(this.state.selectedCampaign)
+    console.log(this.state.selectedScreen)
+    console.log(this.state.campaigns)
+    switch (this.state.selectedScreen){
+      case 'Campaigns':
+        CurrentScreen = React.createElement(Campaigns, {campaigns: thiss.state.campaigns, 
+                            changeSelectedCampaign: thiss.changeSelectedCampaign, 
+                            deleteCampaign: this.deleteCampaign, 
+                            toggleScreen: thiss.toggleScreen})
+        break;
+      case 'CampaignDetail':
+        CurrentScreen = React.createElement(CampaignDetail, {
+                        selectedCampaign: thiss.state.selectedCampaign, 
+                      selectedCampaignObjectId: thiss.state.selectedCampaginObjectId, 
+                        toggleScreen: thiss.toggleScreen})
+        break;
+      case 'Templates':
+        CurrentScreen = React.createElement(Templates, null)
+        break;
+      case 'Overview':
+        CurrentScreen = React.createElement(Campaigns, {campaigns: thiss.state.campaigns, 
+                            changeSelectedCampaign: thiss.changeSelectedCampaign, 
+                            toggleScreen: thiss.toggleScreen})
+        break;
+      case 'Sent Mail':
+        CurrentScreen = React.createElement(SentMail, null)
+        break;
+      case 'Followup Feed':
+        CurrentScreen = React.createElement(FollowupFeed, null)
+        break;
+      case 'Schedules':
+        CurrentScreen = React.createElement(Schedules, null)
+        break;
+    }
+
+    return (
+      React.createElement("div", {className: "", style: {height:'550px'}}, 
+        React.createElement("div", {className: "container", style: {padding:'0',width:'100%',height:'100%'}}, 
+          React.createElement(SideMenu, {
+                createCampaign: this.createCampaign, 
+                prospectLists: this.state.prospectLists, 
+                toggleScreen: this.toggleScreen}), 
+              React.createElement("div", {className: "col-md-10", 
+                   style: {padding:'0',height:'100%'}}, 
+            CurrentScreen
+          )
+        )
+      )
+    );
+  },
+
+  persistCampaign: function(newCampaign) {
+    Campaign = {}
+    Campaign.name = newCampaign.name
+    Campaign.user = Parse._pointer('_User', JSON.parse(localStorage.currentUser).objectId)
+    Campaign.company = JSON.parse(localStorage.currentUser).company
+    Campaign.mail_integration=Parse._pointer("MailIntegration",newCampaign.mail_integration_id)
+    var thiss = this;
+   // TODO - add MailIntegration
+
+    $.ajax({
+      url:'https//api.parse.com/1/classes/Campaign',
+      type:'POST',
+      headers:Parse.headers,
+      data:JSON.stringify(Campaign),
+      success: function(res) {
+        the_campaign = _.find(thiss.state.campaigns, function(campaign){
+          first = campaign.name == newCampaign.name 
+          second = campaign.prospect_list == newCampaign.prospect_list
+          return first && second
+        })
+        console.log(res)
+        console.log(res.objectId)
+
+        the_campaign.objectId = res.objectId
+        campaigns = _.filter(thiss.state.campaigns, function(campaign){
+          first = campaign.name == newCampaign.name 
+          second = campaign.prospect_list == newCampaign.prospect_list
+          return !(first && second)
+        })
+        campaigns.push(the_campaign)
+        console.log(campaigns)
+
+        thiss.setState({campaigns:  campaigns})
+
+        $.ajax({
+          url:'https//api.parse.com/1/classes/Campaign/'+res.objectId,
+          type:'PUT',
+          data: JSON.stringify({prospect_list:{
+            '__type':'Pointer',
+            'className':'ProspectList',
+            'objectId':newCampaign.prospect_list.objectId,
+          }}),
+          headers: Parse.headers,
+          success: function(res){ },
+          error: function() { }
+        })
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    });
+  },
+
+  createCampaign: function(newCampaign) {
+    campaigns = this.state.campaigns
+    campaigns.push(newCampaign)
+    this.setState({campaigns: campaigns})
+    console.log(newCampaign)
+
+    $('.modal').click()
+    $('.modal-backdrop').click()
+
+    this.persistCampaign(newCampaign)
+  }
+});
+
+var SideMenu = React.createClass({displayName: 'SideMenu',
+  toggleScreen: function(e) {
+    this.props.toggleScreen($(e.target).text().trim())
+  },
+
+  /*
+    <button type="button" className="sharp btn btn-default" onClick={this.toggleScreen}>
+      <i className="fa fa-file-text"/> &nbsp; Templates
+    </button>
+    <button type="button" className="sharp btn btn-default" onClick={this.toggleScreen}>
+      <i className="fa fa-clock-o"/> &nbsp; Schedules
+    </button>
+  */
+  createCampaignModal: function() {
+
+  },
+
+  render: function() {
+    return (
+      React.createElement("div", {className: "col-md-2", 
+        style: {padding:'0',height:'100%', backgroundColor:'rgb(90, 107, 119)',borderBottomLeftRadius:'3px'}}, 
+        React.createElement("div", {className: "btn-group-vertical", style: {width:'100%'}}, 
+          React.createElement("button", {type: "button", 
+                  className: "sharp btn btn-default", 
+                  onClick: this.toggleScreen}, 
+            React.createElement("span", {style: {marginLeft:'27px'}}, "Overview")
+          ), 
+          React.createElement("button", {type: "button", 
+                  className: "sharp btn btn-default", 
+                  onClick: this.toggleScreen}, 
+            React.createElement("i", {className: "fa fa-newspaper-o"}), "  ",  
+            React.createElement("span", {style: {marginLeft:'4px'}}, "Followup Feed")
+          ), 
+          React.createElement("button", {type: "button", style: {display:'none'}, 
+                  className: "sharp btn btn-default"}, 
+            React.createElement("i", {className: "fa fa-code-fork"}), "  ",  
+            React.createElement("span", {style: {marginLeft:'4px'}}, "Rules")
+          ), 
+          React.createElement("button", {type: "button", style: {display:'none'}, 
+                  className: "sharp btn btn-default", onClick: this.toggleScreen}, 
+            React.createElement("i", {className: "fa fa-pie-chart"}), "   Analytics"
+          ), 
+          React.createElement("button", {type: "button", className: "sharp btn btn-default", 
+                  onClick: this.toggleScreen}, 
+            React.createElement("i", {className: "fa fa-paper-plane"}), "   Sent Mail"
+          ), 
+          React.createElement("button", {type: "button", className: "sharp btn btn-default", 
+                  onClick: this.toggleScreen}, 
+            React.createElement("i", {className: "fa fa-wrench"}), "   Settings"
+          )
+        ), 
+
+        React.createElement("div", {className: "", style: {width:'100%',textAlign:'center',marginTop:100}}, 
+          React.createElement("a", {href: "javascript:", className: "btn btn-primary new-list-btn", 
+                'data-toggle': "modal", 'data-target': ".bs-createCampaign-modal-sm", 
+                style: { backgroundImage: 'linear-gradient(180deg, #0096ff 0%, #005dff 100%)'}}, 
+            React.createElement("i", {className: "fa fa-plus-circle"}), "  New Campaign"
+          )
+        ), 
+        React.createElement(CreateCampaignModal, {prospectLists: this.props.prospectLists, 
+                             createCampaign: this.createCampaign})
+      )
+    );
+  },
+
+  createCampaign: function(newCampaign) {
+    this.props.createCampaign(newCampaign)
+  }
+});
+
+});
+
+require.register("initialize", function(exports, require, module) {
 //var UserDatasetTable = require("table");
 var routes = require('routes');
 
@@ -814,7 +1173,7 @@ var Navbar = React.createClass({displayName: 'Navbar',
             React.createElement("li", null, "EXPLORE"), 
             React.createElement("li", null, "COMPUTE")
             ), 
-            React.createElement("li", {style: {float:"right"}, onClick: this.gotoProfile}, 
+            React.createElement("li", {style: {float:"right",marginRight:0}, onClick: this.gotoProfile}, 
               React.createElement("img", {src: "images/user.png", style: {height:30,width:30,borderRadius:30}})
             )
           )
@@ -1094,13 +1453,22 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
     this.props.toggleCreateTriggerModal()
   },
 
+  profileHover: function() {
+    console.log("hover")
+  },
+
   render: function() {
     console.log(this.props.profiles)
+    var _this = this;
     profiles = _.map(this.props.profiles, function(profile) {
-      return React.createElement(HiringProfileCard, {profile: profile})
+      return ( 
+              React.createElement("div", null, 
+          React.createElement(HiringProfileCard, {profile: profile})
+        )
+       )
     })
     return (
-          React.createElement("div", {className: "col-md-2"}, 
+          React.createElement("div", {className: "col-md-2 col-sm-2 col-xs-2"}, 
             React.createElement("span", {style: {fontWeight:"800"}}, "TRIGGERS",  
               React.createElement("span", {style: {color:"#bbb",marginLeft:10,fontWeight:200}}, "(", this.props.profiles.length, ") ")
             ), 
@@ -1110,7 +1478,7 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
                onClick: this.toggleCreateTriggerModal, 
                style: {float:"right"}}, 
               React.createElement("i", {className: "fa fa-plus"})), 
-            React.createElement("hr", null), 
+            React.createElement("hr", {style: {marginBottom:0}}), 
 
             profiles
           )
@@ -1120,15 +1488,71 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
 })
 
 var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
+  getInitialState: function() {
+    return {
+      count: "~",
+      hover: false
+    }
+  },
+
+  componentDidMount: function() {
+    profile = this.props.profile
+    var _this = this;
+    $.ajax({
+      url:location.origin+"/"+profile.id+"/count",
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({count: res.count})
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+
+    var pusher = new Pusher('f1141b13a2bc9aa3b519', { encrypted: true });
+    var channel = pusher.subscribe('profile_count');
+
+    var _this = this;
+    channel.bind(_this.props.profile.id, function(data) {
+      //console.log(data)
+      _this.setState({ "count" : data,
+                       "profile_last_updated": moment().unix()})
+    });
+
+
+  },
+
+  gotoProfile: function() {
+    location.href="#signal/"+this.props.profile.id
+  },
+
+  mouseOver: function() {
+    this.setState({hover: true})
+  },
+
+  mouseOut: function() {
+    this.setState({hover: false})
+  },
+
   render: function() {
-    console.log(this.props.profile)
+    //console.log(this.props.profile)
     roles = _.map(this.props.profile.profiles[0], function(prof) {
       return React.createElement("span", null)
     })
+
+    _style ={cursor:"pointer",paddingTop:5,paddingBottom:5,paddingLeft:10,paddingRight:10, borderLeft:"3px solid white",borderBottom:"1px solid #eee"}
+    if(this.state.hover) {
+      _style.borderLeft = "3px solid #0072f0"
+      _style.backgroundColor="rgba(238,238,238,0.4)"
+    }
+
     return (
-      React.createElement("div", {style: {cursor:"pointer"}}, 
-        React.createElement("h5", null, 
-          this.props.profile.name), 
+      React.createElement("div", {style: _style, onMouseOver: this.mouseOver, onMouseOut: this.mouseOut, 
+          onClick: this.gotoProfile}, 
+        React.createElement("h5", null, " ", this.props.profile.name, 
+          React.createElement("small", {style: {float:"right",marginTop:2}}, "(", this.state.count, ")")
+        ), 
         React.createElement("h5", {style: {marginBottom:0,marginTop:5}}, 
           React.createElement("small", null, 
           React.createElement("i", {className: "fa fa-suitcase", style: {width:15}}), "  ", 
@@ -1138,8 +1562,7 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
           React.createElement("small", null, 
           React.createElement("i", {className: "fa fa-map-marker", style: {width:15}}), "  ", 
             this.props.profile.profiles[0].locales.join(", "))
-        ), 
-        React.createElement("hr", null)
+        )
       )
     )
   }
@@ -1151,8 +1574,7 @@ var PressProfileCard = React.createClass({displayName: 'PressProfileCard',
       React.createElement("div", {style: {cursor:"pointer"}}, 
         React.createElement("h5", null, " ", React.createElement("i", {className: "fa fa-bullhorn"}), " " + ' ' +
           "Press Trigger Name"), 
-        React.createElement("h5", null, React.createElement("small", null, "Company Info blah blah")), 
-      React.createElement("hr", null)
+        React.createElement("h5", null, React.createElement("small", null, "Company Info blah blah"))
       )
     )
   }
@@ -1175,6 +1597,193 @@ var TwitterProfileCard = React.createClass({displayName: 'TwitterProfileCard',
 })
 
 module.exports = ProfileSidebar
+
+});
+
+;require.register("profile_timeline", function(exports, require, module) {
+var CreateTriggerModal = require("create_trigger_modal")
+var ProfileSidebar = require("profile_sidebar")
+var Navbar = require("navbar")
+
+var TimelineCard = React.createClass({displayName: 'TimelineCard',
+  downloadFile: function(csvString) {
+    var blob = new Blob([csvString]);
+    if (window.navigator.msSaveOrOpenBlob)  // IE hack; see http://msdn.microsoft.com/en-us/library/ie/hh779016.aspx
+        window.navigator.msSaveBlob(blob, "filename.csv");
+    else
+    {
+        var a = window.document.createElement("a");
+        a.href = window.URL.createObjectURL(blob, {type: "text/plain"});
+        a.download = "filename.csv";
+        document.body.appendChild(a);
+        a.click();  // IE: "Access is denied"; see: https://connect.microsoft.com/IE/feedback/details/797361/ie-10-treats-blob-url-as-cross-origin-and-denies-access
+        document.body.removeChild(a);
+    }
+  },
+
+  downloadCompanies: function() {
+    this.downloadFile(Papa.unparse(this.props.day.cos))
+  },
+
+  downloadEmployees: function() {
+    this.downloadFile(Papa.unparse(this.props.day.emps))
+  },
+
+  render: function() {
+    company_info = {}
+    return (
+      React.createElement("div", {className: "", 
+            onClick: this.toggleCompanyDetailOverlay}, 
+              React.createElement("table", {style: {width:"100%"}}, 
+                React.createElement("tbody", null, 
+                  React.createElement("tr", null, 
+                    React.createElement("td", null, 
+                      React.createElement("h3", {className: "text-muted", style: {color:"#eee"}, 
+                        style: {color:"#ccc",marginTop:20}}, React.createElement("i", {className: "fa fa-calendar-o"}))
+                    ), 
+                    React.createElement("td", {style: {width:"33%"}}, 
+                      React.createElement("h5", {style: {fontSize:18,marginTop:20,marginLeft:20}}, 
+                        moment.unix(this.props.day.timestamp).format("YYYY-MM-DD"), 
+                        " ", 
+                        React.createElement("small", null, 
+                          "(", moment.unix(this.props.day.timestamp).fromNow(), ")"
+                        )
+                      )
+                    ), 
+
+
+                    React.createElement("td", {style: {width:"33%"}}, 
+                      React.createElement("h3", null, 
+                        React.createElement("i", {className: "fa fa-building"}), " ", 
+                        this.props.day.cos.length
+                      ), 
+                      React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-xs", 
+                          onClick: this.downloadCompanies, 
+                          style: {float:"left",marginTop:-39,marginLeft:90,fontSize:10,padding:5,paddingLeft:15,paddingRight:15,paddingTop:7}}, 
+                        React.createElement("i", {className: "fa fa-download"}), 
+                        " " + ' ' +
+                        "DOWNLOAD"
+                      )
+                    ), 
+                    React.createElement("td", {style: {width:"33%"}}, 
+                      React.createElement("h3", null, 
+                        React.createElement("i", {className: "fa fa-user"}), " ", 
+                        this.props.day.emps.length
+                      ), 
+                      React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-xs", 
+                          onClick: this.downloadEmployees, 
+                          style: {float:"left",marginTop:-39,marginLeft:90,fontSize:10,padding:5,paddingLeft:15,paddingRight:15,paddingTop:7}}, 
+                        React.createElement("i", {className: "fa fa-download"}), 
+                        " " + ' ' +
+                        "DOWNLOAD"
+                      )
+                    )
+
+                  )
+                )
+              )
+            )
+    )
+  }
+})
+
+
+var ProfileTimeline = React.createClass({displayName: 'ProfileTimeline',
+  getInitialState: function() {
+    return {
+      profiles: []
+    }
+  },
+
+  componentWillMount: function() {
+    var _this = this;
+    $.ajax({
+      url: location.origin+"/profiles",
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({profiles: res})
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+
+    $.ajax({
+      url: location.origin+"/timeline/"+this.props.params.profile_id,
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({days: res})
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+  },
+
+  toggleCreateTriggerModal: function() {
+    console.log("toggle")
+    this.setState({ showCreateTriggerModal: !this.state.showCreateTriggerModal });
+  },
+
+  downloadProspects: function(prospectType) {
+    $.ajax({
+      url:location.origin+"/profile/"+this.props.params.profile_id+"/"+prospectType,
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+      },
+      err: function(res) {
+        console.log(res)
+      },
+    })
+  },
+
+  downloadEmployeeProspects: function() {
+    this.downloadProspects("employees")
+  },
+
+  downloadCompanyProspects: function() {
+    this.downloadProspects("companies")
+  },
+
+  render: function() {
+    timelines = _.map(this.state.days, function(day) {
+      return React.createElement(TimelineCard, {day: day})
+    })
+    return (
+      React.createElement("div", null, 
+        React.createElement(Navbar, null), 
+      React.createElement("div", {className: "container", style: {overflow:"hidden"}}, " ", React.createElement("br", null), 
+        React.createElement("div", {className: "row"}, 
+          React.createElement(ProfileSidebar, {
+              profiles: this.state.profiles, 
+              lol: "yoyo", 
+              toggleCreateTriggerModal: this.toggleCreateTriggerModal}), 
+          React.createElement("div", {className: "col-md-10", style: {paddingLeft:30}}, 
+            React.createElement("div", {style: {display:"block",marginLeft:"auto",marginRight:100,
+                         textAlign:"center",marginTop:8}}, 
+              React.createElement("span", {style: {fontWeight:"800"}}, "TODAY "), 
+              React.createElement("span", {style: {color:"#bbb"}}, moment().format("MMMM Do"))
+            ), 
+
+            React.createElement("a", {href: "javascript:", className: "btn btn-success", style: {float:"right",marginTop:-90,display:"none"}}, "Create Trigger"), 
+            React.createElement("br", null), 
+            timelines, 
+            React.createElement("br", null)
+          )
+        )
+      ), 
+        React.createElement(CreateTriggerModal, {
+            showModal: this.state.showCreateTriggerModal, 
+            closeModal: this.toggleCreateTriggerModal})
+      )
+    )
+  }
+})
+
+module.exports = ProfileTimeline
 
 });
 
@@ -1227,6 +1836,7 @@ var Signup = require("signup")
 var Profile = require("profile")
 var Navbar = require("navbar")
 var Dashboard = require("dashboard")
+var ProfileTimeline = require("profile_timeline")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -1435,7 +2045,8 @@ var Main = React.createClass({displayName: 'Main',
       triggers:[],
       triggerEmployees: {},
       detailMode: false,
-      currentCompany: {}
+      currentCompany: {},
+      page:0,
     }
   },
 
@@ -1466,13 +2077,25 @@ var Main = React.createClass({displayName: 'Main',
         console.log(err)
       }
     })
+    
+    this.loadTriggers()
+  },
+
+  loadTriggers: function() {
+    var _this = this;
+    if(this.props.params.profile_id)
+      url = location.origin+"/"+this.props.params.profile_id+"/triggers/"+this.state.page
+    else
+      url = location.origin+"/triggers/"+this.state.page
 
     $.ajax({
-      url: location.origin+"/triggers",
+      url: url,
       dataType:"json",
       success: function(res) {
         console.log(res)
-        _this.setState({triggers: res})
+        _this.setState({triggers: _this.state.triggers.concat(res)})
+        _this.setState({page: _this.state.page+1})
+        _this.setState({paginating: false})
 
         _.map(_this.state.triggers, function(trig) {
           $.ajax({
@@ -1515,6 +2138,19 @@ var Main = React.createClass({displayName: 'Main',
   },
 
   componentDidMount: function() {
+    var _this = this;
+    $(window).scroll(function() {
+       if($(window).scrollTop() + $(window).height() == $(document).height()) {
+         //alert("bottom!");
+        // TODO PAGINATE
+        _this.setState({paginating: true})
+        _this.loadTriggers()
+       }
+    });
+  },
+
+  gotoCalendarView: function() {
+    location.href = "#/calendar/"+this.props.params.profile_id
   },
 
   render: function() {
@@ -1541,6 +2177,12 @@ var Main = React.createClass({displayName: 'Main',
                           company_info: company_info, 
                           employees: emps})
     })
+
+    console.log("PARAM")
+    profile = _.findWhere(this.state.profiles, {id: this.props.params.profile_id})
+
+    console.log("_PROFILE")
+    console.log(profile)
     return (
       React.createElement("div", null, 
           React.createElement(Navbar, null), 
@@ -1550,23 +2192,32 @@ var Main = React.createClass({displayName: 'Main',
               profiles: this.state.profiles, 
               lol: "yoyo", 
               toggleCreateTriggerModal: this.toggleCreateTriggerModal}), 
-          React.createElement("div", {className: "col-md-10", style: {paddingLeft:30}}, 
+          React.createElement("div", {className: "col-md-10 col-sm-2 col-xs-2", style: {paddingLeft:30}}, 
+            React.createElement("h4", {style: {marginLeft:"auto",marginRight:"auto",marginTop:-5,display:"block",textAlign:"center",marginBottom:10}}, 
+              React.createElement("i", {className: "fa fa-wifi", style: {marginRight:4}}), 
+              (profile) ? profile.name : "All Signals"
+            ), 
+
             React.createElement("div", {style: {display:"block",marginLeft:"auto",marginRight:100,
-                         textAlign:"center",marginTop:8}}, 
+                         textAlign:"",marginTop:-30,float:"left"}}, 
               React.createElement("span", {style: {fontWeight:"800"}}, "TODAY "), 
               React.createElement("span", {style: {color:"#bbb"}}, moment().format("MMMM Do"))
             ), 
+            (this.props.params.profile_id) ? 
+            React.createElement("a", {href: "javascript:", className: "btn btn-default btn-xs", style: {float:"right",marginTop:-30}, onClick: this.gotoCalendarView}, 
+              "Calendar View") : "", 
+            
 
-            React.createElement(WebsocketListener, null), 
             React.createElement("a", {href: "javascript:", className: "btn btn-success", style: {float:"right",marginTop:-90,display:"none"}}, "Create Trigger"), 
             React.createElement("br", null), 
             CompanyCards, 
             React.createElement("br", null), 
-            (CompanyCards.length) ? React.createElement("div", {style: {textAlign:"center"}}, React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-sm"}, "LOAD MORE")) : "", 
+            (CompanyCards.length && this.state.paginating) ? React.createElement("div", {style: {textAlign:"center"}}, React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-sm"}, "LOADING")) : "", 
             React.createElement("br", null)
           )
         )
       ), 
+
         React.createElement(CreateTriggerModal, {
             showModal: this.state.showCreateTriggerModal, 
             closeModal: this.toggleCreateTriggerModal}), 
@@ -1580,9 +2231,6 @@ var Main = React.createClass({displayName: 'Main',
   }
 })
 
-
-
-
 // declare our routes and their hierarchy
 var routes = (
   React.createElement(Route, {handler: App}, 
@@ -1590,16 +2238,11 @@ var routes = (
     React.createElement(Route, {path: "landing", handler: LandingPage}), 
     React.createElement(Route, {path: "login", handler: Login}), 
     React.createElement(Route, {path: "signup", handler: Signup}), 
+    React.createElement(Route, {path: "dashboard", handler: Dashboard}), 
     React.createElement(Route, {path: "pricing", handler: Pricing}), 
     React.createElement(Route, {path: "profile", handler: Profile}), 
-    React.createElement(Route, {path: "dashboard", handler: Dashboard}), 
-    React.createElement(Route, {path: "new_dataset", handler: NewDatasetPanel}), 
-    React.createElement(Route, {path: "datasets", handler: UserDatasetTable}), 
-    React.createElement(Route, {path: "/dataset/:id", handler: DatasetDetail}), 
-    React.createElement(Route, {path: "/dataset/:id/discussion", handler: DatasetDiscussion}), 
-    React.createElement(Route, {path: "/dataset/:id/analysis", handler: DatasetAnalysis}), 
-    React.createElement(Route, {path: "/dataset/:id/collaborators", handler: DatasetCollaborators}), 
-    React.createElement(Route, {path: "/dataset/:id/visualizations", handler: DatasetVisualizations})
+    React.createElement(Route, {path: "/signal/:profile_id", handler: Main}), 
+    React.createElement(Route, {path: "/calendar/:profile_id", handler: ProfileTimeline})
   )
 );
 
@@ -1867,8 +2510,7 @@ var WebsocketListener = React.createClass({displayName: 'WebsocketListener',
   render: function() {
     return (
       React.createElement("div", {className: "alert alert-info", 
-           style: {textAlign:"center",marginTop:10,cursor:"pointer"}}, 
-        React.createElement("a", {href: "javascript:", className: "btn btn-default btn-xs", style: {float:"right",marginTop:-45}}, "List View"), 
+           style: {textAlign:"center",marginTop:20,cursor:"pointer"}}, 
         React.createElement("strong", null, "36 new prospects found"), "   " + ' ' +
             "Click this here to load!"
       )

@@ -35,8 +35,7 @@ var WebsocketListener = React.createClass({
   render: function() {
     return (
       <div className="alert alert-info" 
-           style={{textAlign:"center",marginTop:10,cursor:"pointer"}}>
-        <a href="javascript:" className="btn btn-default btn-xs" style={{float:"right",marginTop:-45}}>List View</a>
+           style={{textAlign:"center",marginTop:20,cursor:"pointer"}}>
         <strong>36 new prospects found</strong>  &nbsp;
             Click this here to load!
       </div>

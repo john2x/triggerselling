@@ -37,25 +37,20 @@ class EmailHunter:
     def _update_record(self, domain, _id):
         print "EMAIL HUNTER UPDATE RECORD"
         url = "http://api.emailhunter.co/v1/search?domain={0}&api_key=0191b3bdcf20b25b778da18bca995911cec0f630"
-        conn = rethink_conn.conn()
         url = url.format(domain)
         # if emails found return
         html = requests.get(url).text
-        ep = json.loads(html)
-        print ep.keys()
-        if "pattern" in ep.keys():
-            del ep["emails"]
+        res = json.loads(html)
+        print res.keys()
+        if "pattern" in res.keys():
+            del res["emails"]
+            conn = rethink_conn.conn()
             if ep["pattern"] == "none":
                 ep["stache"] = None
                 ep["pattern"] = None
             else:
-                data = {"first":"{{first}}","last":"{{last}}"}
-                data["f"] = "{{first_initial}}"
-                data["l"] = "{{last_initial}}"
-                ep["stache"] = ep["pattern"].format(**data)
-                ep["stache"] = ep["stache"]+"@{{domain}}"
-        else:
-            ep = None
-
-        data = {"email_pattern":ep, "emailhunter_search_completed": r.now()}
-        r.table('triggers').get(_id).update(data).run(conn)
+            ep["stache"] = ep["pattern"].format(**{"first":"{{first}}","last":"{{last}}",
+                                                   "f":"{{first_initial}}","l":"{{last_initial}}"})
+            ep["stache"] = ep["stache"]+"@{{domain}}"
+            #r.table('hiring_signals').get(_id).update({"email_pattern":res}).run(conn)
+            r.table('triggers').get(_id).update({"email_pattern":res}).run(conn)

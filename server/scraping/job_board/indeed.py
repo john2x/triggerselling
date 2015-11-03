@@ -116,6 +116,7 @@ class Indeed:
 
         print "function:time:indeed_job_scrape", str((time.time() - start_time)*10**6), arrow.now().timestamp
         redis.Redis().zadd("function:time:indeed_job_scrape", 
+                           #"{0}:{1}".format(profile, str((time.time() - start_time)*10**6)), 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)
 

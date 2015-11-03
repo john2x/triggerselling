@@ -3,6 +3,7 @@ from email_guess_helper import EmailGuessHelper
 import pandas as pd
 #from parse import Parse
 #from crawl import CompanyEmailPatternCrawl
+import rethink_conn
 from fullcontact import FullContact
 from fuzzywuzzy import process
 from google import Google
@@ -42,15 +43,18 @@ class ClearbitSearch:
   def _update_company_record(self, domain, _id):
       start_time = time.time()
       print "UPDATE COMPANY RECORD"
-      conn = r.connect(host="localhost", port=28015, db="triggeriq")
+      #conn = r.connect(host="localhost", port=28015, db="triggeriq")
+      conn = rethink_conn.conn()
       company= [i for i in r.table('companies').filter({"domain":domain}).run(conn)]
       print "COMPANY FOUND"
+      # TODO - wtf is result and why is it included
       if not company:
           company = clearbit.Company.find(domain=domain, stream=True)
           company = company if company else {}
           r.table('companies').insert(company).run(conn)
-      else:
           result = "found"
+      else:
+          result = "not found"
 
       data = {"company_domain_research_completed":r.now(), 
               "company_domain_research_result": result}
@@ -73,7 +77,7 @@ class ClearbitSearch:
       start_time = time.time()
       conn = r.connect(host="localhost", port=28015, db="triggeriq")
       #_id = "eab41007-6b8c-11e5-b7e1-7831c1d137aa"
-      employees = r.table("company_employees").filter({"company_id":_id}).run(conn)
+      employees = list(r.table("company_employees").filter({"company_id":_id}).run(conn))
       print employees
       for person in employees:
           #pattern = change["new_val"]["email_pattern"]

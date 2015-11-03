@@ -1,4 +1,5 @@
 web: gunicorn routes:app -b 127.0.0.1:8000 --reload -w 4
+redis: redis-server
 change_feed: python -u change_feed.py
 worker: python -u worker.py -c 5
 clock: python -u clock.py 
