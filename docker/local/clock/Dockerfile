@@ -4,18 +4,12 @@
 # - Docker Actions that change rarely should be combined to reduce layers,
 #     which speeds up deploy times (e.g. setting ENV VARS)
 
-FROM picobit/triggeriq-base:latest
-#FROM ../server/Dockerfile
+#FROM picobit/triggeriq-base:latest
+FROM test
 
 # ENV VARS are loaded in a single line to reduce number of images
-ENV WEB_PORT=5000
 
 USER root
-
 WORKDIR /app
-
-# compile assets?
-
-CMD ["gunicorn", "routes:app", "-b", "0.0.0.0:5000", "-w", "4"]
-
+CMD ["python", "-u", "clock.py"]
 EXPOSE 5000

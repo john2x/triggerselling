@@ -11,10 +11,12 @@ from flask import current_app, request, jsonify, Blueprint
 from flask_jwt import JWT, jwt_required, current_identity
 from datetime import datetime, timedelta
 import re
+import rethink_conn
 
 from werkzeug.local import LocalProxy
 
-conn = r.connect(host="localhost", port=28015, db="triggeriq")
+#conn = r.connect(host="localhost", port=28015, db="triggeriq")
+conn = rethink_conn.conn()
 
 auth = Blueprint('auth', __name__)
 
@@ -69,7 +71,7 @@ class Auth(object):
 
     def create_user(self, username, password):
         # Hash password
-        conn = r.connect(db="triggeriq")
+        conn = rethink_conn.conn()
         hashed_pass =  bcrypt.hashpw(password, bcrypt.gensalt(8))
 
         user = {}
@@ -89,7 +91,7 @@ class Auth(object):
         return self.jwt.jwt_encode_callback(user)
 
     def authenticate(self, username, password):
-        conn = r.connect(db="triggeriq")
+        conn = rethink_conn.conn()
         username, password = username.encode('utf-8'), password.encode('utf-8')
         cursor = r.table("users").filter(r.row["email"] == username).run(conn)
         try:
@@ -106,7 +108,7 @@ class Auth(object):
             return None
 
     def identity(self, payload):
-        conn = r.connect(db="triggeriq")
+        conn = rethink_conn.conn()
         print payload
         cursor = r.table("users").filter(r.row["id"] == payload['identity']).run(conn)
         try:
@@ -142,7 +144,7 @@ def login():
 #TODO: - ValidationError handler
 @auth.route("/signup", methods=['POST'])
 def signup():
-    conn = r.connect(db="triggeriq")
+    conn = rethink_conn.conn()
     json = request.get_json(force=True)
     email = json.get('username','')
 

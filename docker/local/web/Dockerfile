@@ -4,31 +4,18 @@
 # - Docker Actions that change rarely should be combined to reduce layers,
 #     which speeds up deploy times (e.g. setting ENV VARS)
 
-FROM ubuntu:trusty
+#FROM picobit/triggeriq-base:latest
+FROM test
 
 # ENV VARS are loaded in a single line to reduce number of images
+ENV WEB_PORT=5000
 
 USER root
 
-RUN apt-get update
-RUN apt-get install -y libcurl4-openssl-dev python-dev python-pandas python-pip
-RUN apt-get install libffi-dev
-
-RUN mkdir /app
 WORKDIR /app
 
-# copy requirements and run pip install
-COPY requirements.txt /app/
-RUN pip install bcrypt
-RUN pip install -r requirements.txt
+# compile assets?
 
-# copy the rest of the app
-COPY . /app/
-
-# compile assets ?
-CMD ["/bin/bash"]
-
-# -- Locally 
-ENV WEB_PORT=5000
 CMD ["gunicorn", "routes:app", "-b", "0.0.0.0:5000", "-w", "4"]
+
 EXPOSE 5000
