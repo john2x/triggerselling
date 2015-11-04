@@ -60,7 +60,7 @@ def timed_job():
 def timed_job():
     print "stats job"
     #high_q.enqueue(Stats()._cron)
-    Stats()._cron()
+    """ Stats()._cron() """
 
 @sched.scheduled_job('interval', seconds=20)
 def timed_job():

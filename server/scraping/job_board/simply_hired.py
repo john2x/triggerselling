@@ -1,7 +1,7 @@
 from splinter import Browser
 #from hiring_signal import HiringSignal
 import time
-import worker import conn
+from worker import conn
 import rethinkdb as r
 import pandas as pd
 from bs4 import BeautifulSoup
