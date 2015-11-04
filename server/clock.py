@@ -43,7 +43,7 @@ p = pusher.Pusher(
 @sched.scheduled_job('interval', seconds=10)
 def timed_job():
     print('signals job')
-    #Signals()._cron()
+    Signals()._cron()
     #PressScrape()._start()
 
 @sched.scheduled_job('interval', seconds=0.5)
