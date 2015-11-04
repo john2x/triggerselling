@@ -2,6 +2,7 @@ import os
 from flask import Flask, send_from_directory, render_template, make_response, request
 import pandas as pd
 from redis import Redis
+from worker import conn
 from rq_scheduler import Scheduler
 from datetime import datetime
 from crossdomain import crossdomain
@@ -246,8 +247,8 @@ def profile_trigger_employees(profile_id):
 @app.route("/redis/stats/<stat>")
 @crossdomain(origin='*')
 def redis_stats(stat):
-    rd = redis.Redis()
-    zr = pd.DataFrame(rd.zrange(stat, 0, -1, withscores=True)).astype("float")
+    #rd = redis.Redis()
+    zr = pd.DataFrame(conn.zrange(stat, 0, -1, withscores=True)).astype("float")
     return make_response(zr.to_dict("r"))
 
 @app.route("/api_key_test")

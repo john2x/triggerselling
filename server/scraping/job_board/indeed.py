@@ -2,6 +2,7 @@ import urllib
 import requests
 from google import Crawlera
 import pandas as pd
+from worker import conn
 from bs4 import BeautifulSoup
 import arrow
 import rethinkdb as r
@@ -115,7 +116,7 @@ class Indeed:
         r.table("triggers").insert(companies.to_dict('r')).run(conn)
 
         print "function:time:indeed_job_scrape", str((time.time() - start_time)*10**6), arrow.now().timestamp
-        redis.Redis().zadd("function:time:indeed_job_scrape", 
+        conn.zadd("function:time:indeed_job_scrape", 
                            #"{0}:{1}".format(profile, str((time.time() - start_time)*10**6)), 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)

@@ -22,7 +22,7 @@ q = Queue("low", connection=_conn)
 dq = Queue("default", connection=_conn)
 hq = Queue("high", connection=_conn)
 
-rd = redis.Redis()
+rd = _conn
 class Stats:
     def _profile_value_counts(self):
         conn = rethink_conn.conn()
@@ -35,7 +35,7 @@ class Stats:
         p.trigger('admin_dashboard', 'rq_job_counts', data)
 
     def _average_value_counts(self):
-      rd = redis.Redis()
+      rd = _conn
       metrics = ["function:time:company_name_to_domain",
               "function:time:clearbit_search_company_record",
               "function:time:bulk_update_employee_record",
@@ -96,6 +96,7 @@ class Stats:
     def _cron(self):
         conn = rethink_conn.conn()
         t = pd.DataFrame(list(r.table("triggers").run(conn)))
+        print t.empty
         if t.empty: return
         self._profile_value_counts()
         #self._rq_job_counts()

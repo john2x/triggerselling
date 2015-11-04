@@ -1,6 +1,7 @@
 from google import Google
 from fuzzywuzzy import fuzz
 from search_engine import *
+from worker import conn
 import pandas as pd
 import rethinkdb as r
 import urlparse
@@ -147,7 +148,8 @@ class CompanyNameToDomain:
         bitmapist.mark_event("function:time:company_name_to_domain", 
                              int((time.time() - start_time)*10**6))
         """
-        redis.Redis().zadd("function:time:company_name_to_domain",
+
+        conn.zadd("function:time:company_name_to_domain",
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)
 

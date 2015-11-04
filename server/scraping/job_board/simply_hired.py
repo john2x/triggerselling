@@ -1,6 +1,7 @@
 from splinter import Browser
 #from hiring_signal import HiringSignal
 import time
+import worker import conn
 import rethinkdb as r
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -73,6 +74,6 @@ class SimplyHired:
         r.table("triggers").insert(companies.to_dict('r')).run(conn)
         bitmapist.mark_event("function:time:simplyhired_job_scrape", 
                              int((time.time() - start_time)*10**6))
-        redis.Redis().zadd("function:time:simplyhired_job_scrape", 
+        conn.zadd("function:time:simplyhired_job_scrape", 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)

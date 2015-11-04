@@ -4,6 +4,7 @@ import pandas as pd
 #from parse import Parse
 #from crawl import CompanyEmailPatternCrawl
 import rethink_conn
+from worker import conn
 from fullcontact import FullContact
 from fuzzywuzzy import process
 from google import Google
@@ -61,7 +62,7 @@ class ClearbitSearch:
       r.table('triggers').get(_id).update(data).run(conn)
       bitmapist.mark_event("function:time:clearbit_search_company_record", 
                            int((time.time() - start_time)*10**6))
-      redis.Redis().zadd("function:time:clearbit_search_company_record", 
+      conn.zadd("function:time:clearbit_search_company_record", 
                          str((time.time() - start_time)*10**6), 
                          arrow.now().timestamp)
 
@@ -88,7 +89,7 @@ class ClearbitSearch:
           hq.enqueue(ClearbitSearch()._update_person_record, email, person["id"])
       bitmapist.mark_event("function:time:bulk_update_employee_record", 
                            int((time.time() - start_time)*10**6))
-      redis.Redis().zadd("function:time:bulk_update_employee_record", 
+      conn.zadd("function:time:bulk_update_employee_record", 
                          str((time.time() - start_time)*10**6), 
                          arrow.now().timestamp)
 

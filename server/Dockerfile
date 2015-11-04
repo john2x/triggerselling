@@ -27,8 +27,3 @@ COPY . /app/
 
 # compile assets ?
 CMD ["/bin/bash"]
-
-# -- Locally 
-ENV WEB_PORT=5000
-CMD ["gunicorn", "routes:app", "-b", "0.0.0.0:5000", "-w", "4"]
-EXPOSE 5000

@@ -1,27 +1,27 @@
 web:
-  build: ../server/
+  build: web/
   ports:
     - "80:5000"
   restart: always
   links:
     - rethinkdb_tunnel
 changefeed:
-  build: local/changefeed/
+  build: changefeed/
   restart: always
   links:
     - rethinkdb_tunnel
 clock:
-  build: local/clock/
+  build: clock/
   restart: always
   links:
     - rethinkdb_tunnel
 worker:
-  build: local/worker/
+  build: worker/
   restart: always
   links:
     - rethinkdb_tunnel
 rq_dashboard:
-  build: local/rq_dashboard/
+  build: rq_dashboard/
   ports:
     - "9181:9181"
   restart: always
@@ -33,7 +33,7 @@ splash:
   ports:
     - "8950:8050"
 rethinkdb_tunnel:
-  build: local/rethinkdb_tunnel/
+  build: rethinkdb_tunnel/
   restart: always
   ports:
     - "28015"

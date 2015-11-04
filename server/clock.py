@@ -51,6 +51,7 @@ def timed_job():
     print('profile_count')
     conn = rethink_conn.conn()
     t = pd.DataFrame(list(r.table("triggers").run(conn)))
+    if t.empty: return
     data = t.profile.value_counts().to_dict()
     for d in data.keys():
         p.trigger('profile_count', d, data[d])

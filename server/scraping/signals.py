@@ -12,6 +12,7 @@ from job_board.zip_recruiter import ZipRecruiter
 from job_board.hiring_signal import HiringSignal
 from press.press import *
 import pandas as pd
+import rethink_conn
 
 from rq import Queue
 from worker import conn as _conn
@@ -105,11 +106,11 @@ class Signals:
         #q.enqueue(ClearSpark()._daily_news)
 
     def _cron(self):
-        conn = r.connect(host="localhost", port=28015, db="triggeriq")
+        conn = rethink_conn.conn()
         profiles = list(r.table("prospect_profiles").run(conn))
         for profile in profiles:
             _profile = [i["className"] for i in profile["profiles"]]
-            print _profile
+            #print _profile
             print "DEPLOYBOT"
             if 'HiringProfile' in _profile: 
                 q.enqueue(Signals()._hiring, profile, timeout=6000)

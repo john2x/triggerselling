@@ -5,6 +5,7 @@ import pandas as pd
 import urllib
 import time
 from google import Google
+from worker import conn
 import rq
 #from queue import RQueue
 from rq import Queue
@@ -133,7 +134,7 @@ class GoogleEmployeeSearch:
         r.table('company_employees').insert(res.to_dict("r")).run(conn)
         bitmapist.mark_event("function:time:company_employee_search", 
                              int((time.time() - start_time)*10**6))
-        redis.Redis().zadd("function:time:company_employee_search", 
+        conn.zadd("function:time:company_employee_search", 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)
 
