@@ -94,6 +94,9 @@ class Stats:
         
 
     def _cron(self):
+        conn = rethink_conn.conn()
+        t = pd.DataFrame(list(r.table("triggers").run(conn)))
+        if t.empty: return
         self._profile_value_counts()
         #self._rq_job_counts()
         self._average_value_counts()
