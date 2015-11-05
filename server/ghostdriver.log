@@ -1,6 +1,103 @@
 PhantomJS is launching GhostDriver...
-[INFO  - 2015-10-08T13:58:23.771Z] GhostDriver - Main - running on port 57959
-[INFO  - 2015-10-08T13:58:24.108Z] Session [a43b1060-6dc4-11e5-9811-4bf16ce9f843] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.7 Safari/534.34","webSecurityEnabled":true}
-[INFO  - 2015-10-08T13:58:24.109Z] Session [a43b1060-6dc4-11e5-9811-4bf16ce9f843] - page.customHeaders:  - {}
-[INFO  - 2015-10-08T13:58:24.109Z] Session [a43b1060-6dc4-11e5-9811-4bf16ce9f843] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"1.9.7","driverName":"ghostdriver","driverVersion":"1.1.0","platform":"mac-unknown-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"},"phantomjs.page.settings.loadImages":true}
-[INFO  - 2015-10-08T13:58:24.109Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: a43b1060-6dc4-11e5-9811-4bf16ce9f843
+[INFO  - 2015-11-04T22:33:51.357Z] GhostDriver - Main - running on port 50589
+[INFO  - 2015-11-04T22:33:51.657Z] Session [1fa3ee40-8344-11e5-8568-c1deb572d7e8] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/534.34 (KHTML, like Gecko) PhantomJS/1.9.7 Safari/534.34","webSecurityEnabled":true}
+[INFO  - 2015-11-04T22:33:51.657Z] Session [1fa3ee40-8344-11e5-8568-c1deb572d7e8] - page.customHeaders:  - {}
+[INFO  - 2015-11-04T22:33:51.657Z] Session [1fa3ee40-8344-11e5-8568-c1deb572d7e8] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"1.9.7","driverName":"ghostdriver","driverVersion":"1.1.0","platform":"mac-unknown-32bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"},"phantomjs.page.settings.loadImages":true}
+[INFO  - 2015-11-04T22:33:51.657Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: 1fa3ee40-8344-11e5-8568-c1deb572d7e8
+[ERROR - 2015-11-04T22:34:07.275Z] Session [1fa3ee40-8344-11e5-8568-c1deb572d7e8] - page.onError - msg: TypeError: 'undefined' is not a function (evaluating 'u.bind(null,d)')
+[ERROR - 2015-11-04T22:34:07.275Z] Session [1fa3ee40-8344-11e5-8568-c1deb572d7e8] - page.onError - stack:
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:1)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:53)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:53)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:5)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:1)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:30)
+[ERROR - 2015-11-04T22:34:53.237Z] Session [1fa3ee40-8344-11e5-8568-c1deb572d7e8] - page.onError - msg: TypeError: 'undefined' is not a function (evaluating 'u.bind(null,d)')
+[ERROR - 2015-11-04T22:34:53.237Z] Session [1fa3ee40-8344-11e5-8568-c1deb572d7e8] - page.onError - stack:
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:1)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:53)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:53)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:5)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:21)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:1)
+  t (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/vendor-f6be5-56c4ffe.js:1)
+  (anonymous function) (https://a-v2.sndcdn.com/assets/app-90da6-dcbb0ac.js:30)
+[INFO  - 2015-11-04T22:38:51.362Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T22:43:51.369Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T22:48:51.370Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T22:53:51.374Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T22:58:51.389Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:03:51.395Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:08:51.386Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:13:51.401Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:18:51.398Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:23:51.409Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:28:51.425Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:33:51.428Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-04T23:38:51.438Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T00:28:53.973Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T00:33:53.132Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T00:38:53.134Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T00:43:53.141Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T00:48:53.144Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T00:53:53.147Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T00:58:53.151Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:03:53.155Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:08:53.157Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:13:53.164Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:18:53.170Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:23:53.174Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:28:53.181Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:33:53.188Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T01:41:11.660Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:09:43.380Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:14:43.382Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:19:43.394Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:24:43.390Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:29:43.396Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:34:43.403Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:39:43.409Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:44:43.412Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:49:43.427Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:54:43.422Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T02:59:43.426Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:04:43.434Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:09:43.439Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:14:43.456Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:19:43.450Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:24:43.466Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:29:43.473Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:34:43.470Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:39:43.481Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:44:43.485Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:54:47.552Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T03:59:47.554Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T04:04:47.549Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T04:09:47.554Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T04:14:47.561Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T04:19:47.564Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW
+[INFO  - 2015-11-05T04:24:47.570Z] SessionManagerReqHand - _cleanupWindowlessSessions - Asynchronous Sessions clean-up phase starting NOW

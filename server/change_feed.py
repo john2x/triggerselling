@@ -8,16 +8,25 @@ from schedule import *
 from routes import app
 import pusher
 from scraping.company_api.company_name_to_domain import CompanyNameToDomain
+from scraping.company_api.async_company_name_research import AsyncCompanyNameResearch
 from scraping.email_pattern.email_hunter import EmailHunter
 from scraping.email_pattern.clearbit_search import ClearbitSearch
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
 from scraping.press.press import *
 from tornadotools.route import Route
 from websocket import *
+from apscheduler.schedulers.tornado import TornadoScheduler
+from tornado import ioloop, gen
+from tornado.concurrent import Future, chain_future
+import functools
 
 import rethinkdb as r
 import json
 import rethink_conn
+
+r.set_loop_type("tornado")
+conn_future = rethink_conn.conn()
+http_client = tornado.httpclient.AsyncHTTPClient()
 
 ''' RethinkDB Changefeeds Callbacks '''
 r.set_loop_type("tornado")
@@ -35,6 +44,31 @@ p = pusher.Pusher(
   ssl=True,
   port=443
 )
+
+@gen.coroutine
+def company_name_to_domain_changes():
+    conn = yield r.connect(**rethink_conn.args())
+    #feed = yield r.table('hiring_signals').changes().run(rethink_conn)
+    feed = yield r.table('company_domain_research').changes().run(conn)
+    while (yield feed.fetch_next()):
+        change = yield feed.next()
+        qry = change["new_val"]["qry"]
+        # TODO Score
+        q = r.table('company_domain_research').filter({"qry":qry})
+        searches = yield q.coerce_to("array").run(conn)
+        print pd.DataFrame(searches).search_engine
+        domains = CompanyNameToDomain().score(qry, 
+                    [pd.DataFrame(i["res"]) for i in searches])
+        if domains:
+            triggers = r.table("triggers").filter({"company_name":qry})
+            triggers = yield triggers.coerce_to("array").run(conn)
+            print "triggers", len(triggers)
+            for t in triggers:
+                domain = domains[0]["domain"]
+                t=r.table("triggers").get(t["company_key"]).update({"domain":domain})
+                yield t.run(conn)
+        print domains
+
 
 @gen.coroutine
 def trigger_changes():
@@ -137,7 +171,6 @@ class SimpleHandler6(tornado.web.RequestHandler):
         # TODO - get all routes which belong to
         self.write( {"lol":"lmao"} )
 
-
 app = tornado.web.Application(Route.routes() + [
  (r'/send_message', SendMessageHandler)
 ] + sockjs.tornado.SockJSRouter(MessageHandler, '/sockjs').urls)
@@ -147,5 +180,11 @@ if __name__ == "__main__":
     #app.listen(8000)
     #app.listen(5000)
     #tornado.ioloop.IOLoop.current().add_callback(print_changes)
+    tornado.ioloop.IOLoop.current().add_callback(company_name_to_domain_changes)
     tornado.ioloop.IOLoop.current().add_callback(trigger_changes)
+
+    scheduler = TornadoScheduler()
+    scheduler.add_job(AsyncCompanyNameResearch().start, 'interval', seconds=1)
+    scheduler.start()
+
     tornado.ioloop.IOLoop.current().start()

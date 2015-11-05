@@ -2,5 +2,4 @@ web: python -u routes.py
 change_feed: python -u change_feed.py
 worker: python -u worker.py -c 15
 clock: python -u clock.py 
-splash: python -m splash.server --port=8950
 rq_dashboard: rq-dashboard
