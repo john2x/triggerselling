@@ -107,7 +107,7 @@ def profile_companies(profile_id):
     data = r.table("triggers").filter(lambda trigger: trigger.has_fields("domain"))
     data = data.filter({"profile":profile_id})
     data = data.order_by("timestamp")
-    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.without(["company_domain_research_completed","employee_search_completed","emailhunter_search_completed"])
     data = data.eq_join("profile", r.table("prospect_profiles")).zip()
     data = data.run(conn)
     return make_response(json.dumps(data))
@@ -120,7 +120,7 @@ def profile_employees(profile_id):
     data = data.filter({"profile":profile_id})
     data = data.order_by("createdAt")
     #data = data.order_by("timestamp")
-    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.without(["company_domain_research_completed","employee_search_completed","emailhunter_search_completed"])
     data = data.eq_join("profile", r.table("prospect_profiles")).zip()
     d = list(data.run(conn))
 
@@ -141,10 +141,11 @@ def triggers(page=0):
     print page
     page = int(page)
     conn = rethink_conn.conn()
+    #.distinct(index="domain")
     data = r.table("triggers").filter(lambda trigger: trigger.has_fields("domain"))
     #data = data.order_by("created_at")
     data = data.order_by(r.desc("timestamp"))
-    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.without(["company_domain_research_completed","employee_search_completed","emailhunter_search_completed"])
     data = data.eq_join("profile", r.table("prospect_profiles"))
     data = data.slice(page*50, (page+1)*50).limit(50).zip()
     #data = data.without([])
@@ -194,7 +195,7 @@ def company_employees(_id):
 def profile_timeline(profile_id):
     conn = rethink_conn.conn()
     t = r.table("triggers").filter({"profile":profile_id})
-    t = t.without(["company_domain_research_completed","emailhunter_search_completed"])
+    t = t.without(["company_domain_research_completed","employee_search_completed","emailhunter_search_completed"])
     t = t.run(conn)
     t = pd.DataFrame(list(t))
     t.index = [arrow.get(i).datetime for i in t.timestamp.fillna(0)]
@@ -218,7 +219,7 @@ def profile_triggers(profile_id, page=0):
     data = r.table("triggers").filter(lambda trigger: trigger.has_fields("domain"))
     data = data.filter({"profile":profile_id})
     data = data.order_by(r.desc("timestamp"))
-    data = data.without(["company_domain_research_completed","emailhunter_search_completed"])
+    data = data.without(["company_domain_research_completed","employee_search_completed","emailhunter_search_completed"])
     data = data.eq_join("profile", r.table("prospect_profiles")).zip()
     data = data.slice(page*50, (page+1)*50).limit(50)
     data = list(data.run(conn))
@@ -248,8 +249,9 @@ def profile_trigger_employees(profile_id):
 @crossdomain(origin='*')
 def redis_stats(stat):
     #rd = redis.Redis()
-    zr = pd.DataFrame(conn.zrange(stat, 0, -1, withscores=True)).astype("float")
-    return make_response(zr.to_dict("r"))
+    print conn
+    zr = conn.zrange(stat, 0, -1, withscores=True)
+    return make_response(json.dumps(zr))
 
 @app.route("/api_key_test")
 #@require_appkey

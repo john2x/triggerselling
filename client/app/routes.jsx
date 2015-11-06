@@ -241,6 +241,7 @@ var Main = React.createClass({
       $("body").css({"overflow":"auto"})
   },
 
+  /*
   componentWillMount: function() {
     var _this = this;
     $.ajax({
@@ -257,6 +258,7 @@ var Main = React.createClass({
     
     this.loadTriggers()
   },
+  */
 
   loadTriggers: function() {
     var _this = this;
@@ -315,6 +317,21 @@ var Main = React.createClass({
   },
 
   componentDidMount: function() {
+    var _this = this;
+    $.ajax({
+      url: location.origin+"/profiles",
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({profiles: res})
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+    
+    this.loadTriggers()
+
     var _this = this;
     $(window).scroll(function() {
        if($(window).scrollTop() + $(window).height() == $(document).height()) {

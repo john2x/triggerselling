@@ -33,6 +33,7 @@ class AsyncCompanyNameResearch:
         triggers = yield r.table("triggers").coerce_to("array").run(conn)
         triggers = pd.DataFrame(triggers).drop_duplicates("company_name")
         triggers = triggers[triggers.domain.isnull()]
-        for i, trigger in triggers.iterrows():
+        triggers = triggers.sort("createdAt",ascending=False)
+        for i, trigger in triggers.head(50).iterrows():
             for url in CompanyNameToDomain()._make_urls(trigger["company_name"]):
                 http_client.fetch(url, AsyncCompanyNameResearch().handle_response)

@@ -19,6 +19,7 @@ var ProfileSidebar = React.createClass({
         </div>
        )
     })
+
     return (
           <div className="col-md-2 col-sm-2 col-xs-2">
             <span style={{fontWeight:"800"}}>TRIGGERS 
@@ -31,7 +32,6 @@ var ProfileSidebar = React.createClass({
                style={{float:"right"}}>
               <i className="fa fa-plus"/></a>
             <hr style={{marginBottom:0}}/>
-
             {profiles}
           </div>
       
@@ -68,8 +68,7 @@ var HiringProfileCard = React.createClass({
     var _this = this;
     channel.bind(_this.props.profile.id, function(data) {
       //console.log(data)
-      _this.setState({ "count" : data,
-                       "profile_last_updated": moment().unix()})
+      _this.setState({ "count" : data, "profile_last_updated": moment().unix()})
     });
 
 
@@ -99,6 +98,8 @@ var HiringProfileCard = React.createClass({
       _style.backgroundColor="rgba(238,238,238,0.4)"
     }
 
+    titles = (this.props.profile.titles) ? this.props.profile.titles.join(", ") : ""
+
     return (
       <div style={_style} onMouseOver={this.mouseOver} onMouseOut={this.mouseOut}
           onClick={this.gotoProfile}>
@@ -114,6 +115,11 @@ var HiringProfileCard = React.createClass({
           <small>
           <i className="fa fa-map-marker" style={{width:15}}/> &nbsp;
             {this.props.profile.profiles[0].locales.join(", ")}</small>
+        </h5>
+        <h5 style={{marginBottom:0,marginTop:2}}>
+          <small>
+          {(this.props.profile.titles) ? <i className="fa fa-user" style={{width:15}}/> : "" }
+            {titles}</small>
         </h5>
       </div>
     )

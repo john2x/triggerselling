@@ -2,6 +2,7 @@ from splinter import Browser
 #from hiring_signal import HiringSignal
 import rethinkdb as r
 import time
+import os
 from worker import conn
 import pandas as pd
 from bs4 import BeautifulSoup
@@ -15,6 +16,8 @@ import time
 import bitmapist
 import math
 import rethink_conn
+
+rd = redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379'))
 
 class ZipRecruiter:
     def _html(self, qry, page=1, location="", country=None):
@@ -78,7 +81,7 @@ class ZipRecruiter:
         bitmapist.mark_event("function:time:ziprecruiter_job_scrape", 
                              int((time.time() - start_time)*10**6))
         #HiringSignal()._persist(listings, profile, report)
-        conn.zadd("function:time:ziprecruiter_job_scrape", 
+        rd.zadd("function:time:ziprecruiter_job_scrape", 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)
 

@@ -1,6 +1,7 @@
 from splinter import Browser
 #from hiring_signal import HiringSignal
 import time
+import os
 from worker import conn
 import rethinkdb as r
 import pandas as pd
@@ -13,6 +14,8 @@ import bitmapist
 import math
 import rethink_conn
 #from parse import Parse
+
+rd = redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379'))
 
 class SimplyHired:
     def _html(self, qry, page=1, locale="", country=None):
@@ -74,6 +77,6 @@ class SimplyHired:
         r.table("triggers").insert(companies.to_dict('r')).run(conn)
         bitmapist.mark_event("function:time:simplyhired_job_scrape", 
                              int((time.time() - start_time)*10**6))
-        conn.zadd("function:time:simplyhired_job_scrape", 
+        rd.zadd("function:time:simplyhired_job_scrape", 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)

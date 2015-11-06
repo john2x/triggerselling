@@ -111,6 +111,7 @@ var ProfileTimeline = React.createClass({
       dataType:"json",
       success: function(res) {
         console.log(res)
+        res = _.sortBy(res, "timestamp").reverse()
         _this.setState({days: res})
       },
       error: function(err) {

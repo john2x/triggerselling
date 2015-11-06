@@ -159,7 +159,10 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
                     React.createElement("td", {style: {padding:5,width:"35%"}}, 
                       React.createElement("a", {href: "javascript:", style: {color:"black"}}, 
                       React.createElement("h5", {style: {fontSize:18}}, 
-                        this.props.trigger.company_name)
+                        this.props.trigger.company_name, 
+
+                        (this.props.trigger.email_pattern) ? React.createElement("i", {className: "fa fa-envelope"}) : ""
+                      )
                       ), 
                       React.createElement("div", {className: "ellipsis", style: {width:300,fontSize:10}}, 
                         company_info.description
@@ -229,7 +232,7 @@ var EmployeeInfo = React.createClass({displayName: 'EmployeeInfo',
       users.push(React.createElement(UserPic, null))
 
     return (
-        React.createElement("td", {style: {padding:5,width:"35%"}}, 
+        React.createElement("td", {style: {padding:5,width:"18%"}}, 
           React.createElement("h5", null), 
           (this.props.employees.length) ? React.createElement("div", null, users, 
           React.createElement("div", {style: {color: "#aaa",marginTop: -30, marginLeft: 65,fontSize:13}}, 
@@ -274,25 +277,10 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
     ci = JSON.parse(this.props.company.company_info)
     console.log(ci)
     company = (this.props.company.trigger) ? this.props.company.trigger : {}
+    console.log(company)
     employees = (this.props.company.employees) ? this.props.company.employees : []
     employees = _.map(employees, function(emp) {
-        return React.createElement("div", {style: {paddingLeft:5,width:"80%"}}, 
-          React.createElement(UserPic, null), 
-          React.createElement("h5", {style: {marginBottom:0}}, React.createElement("span", {style: {fontWeight:"bold"}}, emp.name), " - ", React.createElement("small", null, emp.title)), 
-          React.createElement("h6", {style: {marginTop:4}}, emp.locale, " - ", React.createElement("small", null, emp.company_name)), 
-          React.createElement("input", {className: "form-control input-sm", value: "example@example.com", 
-            style: {float:"right",marginTop:-35,marginRight:60, width:150}}), 
-
-          React.createElement("a", {className: "btn btn-primary btn-xs", 
-              onClick: this.openLink, 
-              style: {float:"right",marginTop:-32,marginRight:30}}, 
-            React.createElement("i", {className: "fa fa-external-link"})
-          ), 
-          React.createElement("a", {href: "javascript:", className: "btn btn-success btn-xs", 
-              style: {float:"right",marginTop:-32,marginRight:0}}, 
-            React.createElement("i", {className: "fa fa-plus"})
-          )
-        )
+        return  React.createElement(EmployeeCard, {emp: emp})
     })
 
     return (
@@ -309,7 +297,7 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
                         React.createElement("img", {src: (ci.logo) ? ci.logo : "images/empty_company.png", alt: ""})
                       ), 
         React.createElement("h1", {style: {marginTop:0}}, company.company_name), 
-        React.createElement("h3", {style: {marginTop:0}}, React.createElement("small", null, "ci.category.industry"), 
+        React.createElement("h3", {style: {marginTop:0}}, React.createElement("small", null, (ci.category) ? ci.category.industry : ""), 
           " " + ' ' +
           " ", 
           React.createElement("div", {style: {display:"inline"}}, 
@@ -328,11 +316,14 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
           React.createElement("a", {className: "btn btn-default btn-xs"}, 
             React.createElement("i", {className: "fa fa-twitter"})
           ), 
+          " ", 
           React.createElement("a", {className: "btn btn-default btn-xs"}, 
             React.createElement("i", {className: "fa fa-globe"})
           )
           )), 
         React.createElement("h5", {style: {width:"73%",overflow:"auto",height:45}}, ci.description), 
+        React.createElement("input", {className: "form-control input-sm", value: ci.domain, style: {width:300}}), 
+        React.createElement("input", {className: "form-control input-sm", value: company.email_pattern, style: {width:300}}), 
         React.createElement("hr", null), 
         React.createElement("div", {style: {height:"83%",overflow:"auto"}}, 
           employees
@@ -349,6 +340,44 @@ var UserPic = React.createClass({displayName: 'UserPic',
       React.createElement("div", {style: {height:35,width:35,border:"2px solid white",oldBoxShadow:"0px 2px 4px 0px rgba(0,0,0,0.30)",backgroundImage:"url('images/user.png')",backgroundSize:"cover",borderRadius:25,float:"left",marginRight:10}}, " ")
     )
 
+  }
+})
+
+var EmployeeCard = React.createClass({displayName: 'EmployeeCard',
+  /*
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  */
+  render: function() {
+    emp = this.props.emp
+    return (
+            React.createElement("div", {style: {paddingLeft:5,width:"80%"}}, 
+              React.createElement(UserPic, null), 
+              React.createElement("h5", {style: {marginBottom:0}}, 
+                React.createElement("span", {style: {fontWeight:"bold"}}, emp.name), " -",  
+                React.createElement("small", {style: {width:200,whiteSpace:"nowrap",overflow:"hidden",
+                               textOverflow:"ellipsis",display:"inline-block",
+                               marginLeft:5}}, 
+                    emp.title)), 
+              React.createElement("h6", {style: {marginTop:4}}, emp.locale, " -",  
+                React.createElement("small", null, emp.company_name)), 
+              React.createElement("input", {className: "form-control input-sm", value: "example@example.com", 
+                style: {float:"right",marginTop:-35,marginRight:60, width:150}}), 
+
+              React.createElement("a", {className: "btn btn-primary btn-xs", 
+                  onClick: this.openLink, 
+                  style: {float:"right",marginTop:-32,marginRight:30}}, 
+                React.createElement("i", {className: "fa fa-external-link"})
+              ), 
+              React.createElement("a", {href: "javascript:", className: "btn btn-success btn-xs", 
+                  style: {float:"right",marginTop:-32,marginRight:0}}, 
+                React.createElement("i", {className: "fa fa-plus"})
+              )
+            )
+
+    )
   }
 })
 
@@ -487,7 +516,7 @@ var Dashboard = React.createClass({displayName: 'Dashboard',
   componentDidMount: function() {
    Pusher.log = function(message) {
       if (window.console && window.console.log) {
-        //window.console.log(message);
+        window.console.log(message);
       }
     };
 
@@ -1468,6 +1497,7 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
         )
        )
     })
+
     return (
           React.createElement("div", {className: "col-md-2 col-sm-2 col-xs-2"}, 
             React.createElement("span", {style: {fontWeight:"800"}}, "TRIGGERS",  
@@ -1480,7 +1510,6 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
                style: {float:"right"}}, 
               React.createElement("i", {className: "fa fa-plus"})), 
             React.createElement("hr", {style: {marginBottom:0}}), 
-
             profiles
           )
       
@@ -1517,8 +1546,7 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
     var _this = this;
     channel.bind(_this.props.profile.id, function(data) {
       //console.log(data)
-      _this.setState({ "count" : data,
-                       "profile_last_updated": moment().unix()})
+      _this.setState({ "count" : data, "profile_last_updated": moment().unix()})
     });
 
 
@@ -1548,6 +1576,8 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
       _style.backgroundColor="rgba(238,238,238,0.4)"
     }
 
+    titles = (this.props.profile.titles) ? this.props.profile.titles.join(", ") : ""
+
     return (
       React.createElement("div", {style: _style, onMouseOver: this.mouseOver, onMouseOut: this.mouseOut, 
           onClick: this.gotoProfile}, 
@@ -1563,6 +1593,11 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
           React.createElement("small", null, 
           React.createElement("i", {className: "fa fa-map-marker", style: {width:15}}), "  ", 
             this.props.profile.profiles[0].locales.join(", "))
+        ), 
+        React.createElement("h5", {style: {marginBottom:0,marginTop:2}}, 
+          React.createElement("small", null, 
+          (this.props.profile.titles) ? React.createElement("i", {className: "fa fa-user", style: {width:15}}) : "", 
+            titles)
         )
       )
     )
@@ -1715,6 +1750,7 @@ var ProfileTimeline = React.createClass({displayName: 'ProfileTimeline',
       dataType:"json",
       success: function(res) {
         console.log(res)
+        res = _.sortBy(res, "timestamp").reverse()
         _this.setState({days: res})
       },
       error: function(err) {
@@ -2065,6 +2101,7 @@ var Main = React.createClass({displayName: 'Main',
       $("body").css({"overflow":"auto"})
   },
 
+  /*
   componentWillMount: function() {
     var _this = this;
     $.ajax({
@@ -2081,6 +2118,7 @@ var Main = React.createClass({displayName: 'Main',
     
     this.loadTriggers()
   },
+  */
 
   loadTriggers: function() {
     var _this = this;
@@ -2139,6 +2177,21 @@ var Main = React.createClass({displayName: 'Main',
   },
 
   componentDidMount: function() {
+    var _this = this;
+    $.ajax({
+      url: location.origin+"/profiles",
+      dataType:"json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({profiles: res})
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+    
+    this.loadTriggers()
+
     var _this = this;
     $(window).scroll(function() {
        if($(window).scrollTop() + $(window).height() == $(document).height()) {

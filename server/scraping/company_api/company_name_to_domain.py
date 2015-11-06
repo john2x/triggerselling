@@ -3,6 +3,7 @@ from fuzzywuzzy import fuzz
 from search_engine import *
 import tornado.httpclient
 #from worker import conn
+import os
 import pandas as pd
 import rethinkdb as r
 import urlparse
@@ -21,6 +22,8 @@ un, pw = "5846ea676dc7405eac44d83201127e7f", ""
 CRAWLERA_URL = "http://{0}:{1}@proxy.crawlera.com/fetch?".format(un, pw)
 
 SPLASH_URL = "http://localhost:8950/render.html?"
+
+rd = redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379'))
 
 class CompanyNameToDomain:
     def _remove_non_ascii(self, text):
@@ -88,11 +91,11 @@ class CompanyNameToDomain:
 
         df["engine_url"] = url
         u = urllib.unquote_plus(url)
-        df["qry"] = u.split("url=")[-1].split("=")[-1]
+        df["qry"] = urllib.unquote_plus(u.split("url=")[-1].split("=")[-1])
         df["search_engine"] = urlparse.urlparse(u.split("url=")[-1]).netloc
         data = {
           "engine_url": url,
-          "qry":u.split("url=")[-1].split("=")[-1],
+          "qry": urllib.unquote_plus(u.split("url=")[-1].split("=")[-1]),
           "search_engine":urlparse.urlparse(u.split("url=")[-1]).netloc,
           "res":df.to_dict("r")[:15]
         }
@@ -186,7 +189,7 @@ class CompanyNameToDomain:
                              int((time.time() - start_time)*10**6))
         """
 
-        conn.zadd("function:time:company_name_to_domain",
+        rd.zadd("function:time:company_name_to_domain",
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)
 

@@ -19,7 +19,7 @@ var Dashboard = React.createClass({
   componentDidMount: function() {
    Pusher.log = function(message) {
       if (window.console && window.console.log) {
-        //window.console.log(message);
+        window.console.log(message);
       }
     };
 

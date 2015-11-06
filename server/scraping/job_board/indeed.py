@@ -2,6 +2,7 @@ import urllib
 import requests
 from google import Crawlera
 import pandas as pd
+import os
 from worker import conn
 from bs4 import BeautifulSoup
 import arrow
@@ -11,6 +12,8 @@ import time
 import bitmapist
 import math
 import rethink_conn
+
+rd = redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379'))
 
 class Indeed:
     def _search(self, qry, page, location='', country=None):
@@ -116,7 +119,7 @@ class Indeed:
         r.table("triggers").insert(companies.to_dict('r')).run(conn)
 
         print "function:time:indeed_job_scrape", str((time.time() - start_time)*10**6), arrow.now().timestamp
-        conn.zadd("function:time:indeed_job_scrape", 
+        rd.zadd("function:time:indeed_job_scrape", 
                            #"{0}:{1}".format(profile, str((time.time() - start_time)*10**6)), 
                            str((time.time() - start_time)*10**6), 
                            arrow.now().timestamp)

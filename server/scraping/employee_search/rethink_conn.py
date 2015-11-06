@@ -5,6 +5,10 @@ def conn():
     if 'DEBUG' in os.environ:
         conn = r.connect(db="triggeriq")
     else:
+        print "ENVIRONMENT"
+        print os.environ
+        print os.environ.keys()
+        print os.environ.values()
         conn = r.connect(
           host='rethinkdb_tunnel',
           #host=os.environ['RETHINKDB_HOST'],

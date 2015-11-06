@@ -2,6 +2,7 @@ import os
 import tornado.ioloop
 import logging
 import tornado.web
+from async_research import *
 import rethinkdb as r
 from tornado import ioloop, gen
 from schedule import *
@@ -56,7 +57,7 @@ def company_name_to_domain_changes():
         # TODO Score
         q = r.table('company_domain_research').filter({"qry":qry})
         searches = yield q.coerce_to("array").run(conn)
-        print pd.DataFrame(searches).search_engine
+        print pd.DataFrame(searches).search_engine, qry
         domains = CompanyNameToDomain().score(qry, 
                     [pd.DataFrame(i["res"]) for i in searches])
         if domains:
@@ -69,15 +70,15 @@ def company_name_to_domain_changes():
                 yield t.run(conn)
         print domains
 
-
 @gen.coroutine
 def trigger_changes():
+    """
     conn = yield r.connect(**rethink_conn.args())
     #feed = yield r.table('hiring_signals').changes().run(rethink_conn)
     feed = yield r.table('triggers').changes().run(conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
-        print change
+        #print change
         if change["old_val"] == None:
             print "STARTING"
             a = [change["new_val"]["company_name"], change["new_val"]["company_key"]]
@@ -112,17 +113,16 @@ def trigger_changes():
             # TODO update counts
             # TODO update UI with pusher
             qry = r.table("triggers").filter({"profile":change["new_val"]})
-            count = qry.count().run(conn)
+            count = yield qry.count().run(conn)
             data = {"count": count}
             p.trigger('profile_count', change["new_val"]["profile"], data)
 
         if "email_pattern" in change["new_val"]:
-            """
             print "EMAIL_PATTERN"
             val = change["new_val"]
             a = [val["company_key"], val["email_pattern"]["pattern"], val["domain"]]
             hq.enqueue(ClearbitSearch()._bulk_update_employee_record, *a)
-            """
+    """
 
 #change_feed: python -u change_feed.py
 @gen.coroutine
@@ -184,7 +184,8 @@ if __name__ == "__main__":
     tornado.ioloop.IOLoop.current().add_callback(trigger_changes)
 
     scheduler = TornadoScheduler()
-    scheduler.add_job(AsyncCompanyNameResearch().start, 'interval', seconds=1)
+    #scheduler.add_job(AsyncCompanyNameResearch().start, 'interval', seconds=1)
+    scheduler.add_job(AsyncCompanyResearch().start, 'interval', seconds=1)
     scheduler.start()
 
     tornado.ioloop.IOLoop.current().start()

@@ -5,6 +5,7 @@ import pandas as pd
 #from crawl import CompanyEmailPatternCrawl
 import rethink_conn
 from worker import conn
+import os
 from fullcontact import FullContact
 from fuzzywuzzy import process
 from google import Google
@@ -16,6 +17,8 @@ import math
 import arrow
 import redis
 #from crawl import CompanyInfoCrawl
+
+rd = redis.from_url(os.getenv('REDIS_URL', 'redis://localhost:6379'))
 
 clearbit.key = 'dc80f4192b73cca928f4e7c284b46573'
 from rq import Queue
@@ -46,12 +49,15 @@ class ClearbitSearch:
       print "UPDATE COMPANY RECORD"
       #conn = r.connect(host="localhost", port=28015, db="triggeriq")
       conn = rethink_conn.conn()
-      company= [i for i in r.table('companies').filter({"domain":domain}).run(conn)]
+      print domain
+      #company= [i for i in r.table('companies').filter({"domain":domain}).run(conn)]
+      company = []
       print "COMPANY FOUND"
       # TODO - wtf is result and why is it included
       if not company:
           company = clearbit.Company.find(domain=domain, stream=True)
           company = company if company else {}
+          print company
           r.table('companies').insert(company).run(conn)
           result = "found"
       else:
@@ -62,7 +68,7 @@ class ClearbitSearch:
       r.table('triggers').get(_id).update(data).run(conn)
       bitmapist.mark_event("function:time:clearbit_search_company_record", 
                            int((time.time() - start_time)*10**6))
-      conn.zadd("function:time:clearbit_search_company_record", 
+      rd.zadd("function:time:clearbit_search_company_record", 
                          str((time.time() - start_time)*10**6), 
                          arrow.now().timestamp)
 
@@ -89,7 +95,7 @@ class ClearbitSearch:
           hq.enqueue(ClearbitSearch()._update_person_record, email, person["id"])
       bitmapist.mark_event("function:time:bulk_update_employee_record", 
                            int((time.time() - start_time)*10**6))
-      conn.zadd("function:time:bulk_update_employee_record", 
+      rd.zadd("function:time:bulk_update_employee_record", 
                          str((time.time() - start_time)*10**6), 
                          arrow.now().timestamp)
 

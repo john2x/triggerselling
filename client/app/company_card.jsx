@@ -25,7 +25,10 @@ var CompanyCard = React.createClass({
                     <td style={{padding:5,width:"35%"}}>
                       <a href="javascript:" style={{color:"black"}}>
                       <h5 style={{fontSize:18}}>
-                        {this.props.trigger.company_name}</h5>
+                        {this.props.trigger.company_name}
+
+                        {(this.props.trigger.email_pattern) ? <i className="fa fa-envelope" /> : ""}
+                      </h5>
                       </a>
                       <div className="ellipsis" style={{width:300,fontSize:10}}>
                         {company_info.description}
@@ -95,7 +98,7 @@ var EmployeeInfo = React.createClass({
       users.push(<UserPic />)
 
     return (
-        <td style={{padding:5,width:"35%"}}>
+        <td style={{padding:5,width:"18%"}}>
           <h5></h5>
           {(this.props.employees.length) ? <div>{users}
           <div style={{color: "#aaa",marginTop: -30, marginLeft: 65,fontSize:13}}>
