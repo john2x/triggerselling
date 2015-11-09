@@ -26,6 +26,7 @@ def args():
           db=os.environ['RETHINKDB_DB'],
           auth_key=os.environ['RETHINKDB_AUTH_KEY']
         )
+
         conn = {
           "host":'rethinkdb_tunnel',
           #"host":os.environ['RETHINKDB_HOST'],
