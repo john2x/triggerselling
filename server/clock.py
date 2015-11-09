@@ -24,7 +24,7 @@ p = pusher.Pusher( app_id='149760', key='f1141b13a2bc9aa3b519', secret='11723dad
 def timed_job():
     print('signals job')
     Signals()._cron()
-    #PressScrape()._start()
+    PressScrape()._start()
 
 """
 @sched.scheduled_job('interval', seconds=0.5)

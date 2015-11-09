@@ -133,6 +133,12 @@ module.exports = CheckboxGroup
 
 ;require.register("company_card", function(exports, require, module) {
 var CompanyCard = React.createClass({displayName: 'CompanyCard',
+  getInitialState: function() {
+    return {
+      hover: false
+    }
+  },
+
   toggleCompanyDetailOverlay: function() {
     //console.log("toggle")
     this.props.toggleCompanyDetailOverlay(this.props)
@@ -141,18 +147,40 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
   componentDidMount: function() {
   },
 
+  mouseOver: function() {
+    console.log("")
+    this.setState({hover: true})
+  },
+
+  mouseLeave: function() {
+    this.setState({hover: false})
+  },
+
+  openLink: function() {
+    window.open()
+  },
+
   render: function() {
     if(this.props.company_info.length)
       company_info = JSON.parse(this.props.company_info)
+    hoverStyle = {borderRadius: 5, paddingLeft:10, paddingRight:10, cursor:"pointer"}
+    if(this.state.hover)
+      hoverStyle.backgroundColor ="rgba(0,0,0,0.03)"
+
+    company_info.metrics = (company_info.metrics) ? company_info.metrics : {}
+    company_info.geo = (company_info.geo) ? company_info.geo : {}
     return (
       React.createElement("div", {className: "", 
-            onClick: this.toggleCompanyDetailOverlay}, 
+            onMouseOver: this.mouseOver, 
+            onMouseLeave: this.mouseLeave, 
+            onClick: this.toggleCompanyDetailOverlay, 
+            style: hoverStyle}, 
               React.createElement("table", null, 
                 React.createElement("tbody", null, 
                   React.createElement("tr", null, 
                     React.createElement("td", null, 
                      React.createElement("a", {href: "javascript:", className: "thumbnail", 
-                        style: {height:55,width:55,marginRight:15,float:"left",marginBottom:0}}, 
+                        style: {height:65,width:65,marginRight:15,float:"left",marginBottom:0}}, 
                         React.createElement("img", {src: (company_info.logo) ? company_info.logo : "images/empty_company.png", alt: ""})
                       )
                     ), 
@@ -160,16 +188,31 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
                       React.createElement("a", {href: "javascript:", style: {color:"black"}}, 
                       React.createElement("h5", {style: {fontSize:18}}, 
                         this.props.trigger.company_name, 
+                        React.createElement("small", {style: {float:"right",fontSize:8,display:"none"}}, 
+                          React.createElement("i", {className: "fa fa-external-link-square", style: {cursor:"pointer"}, 
+                          onClick: this.openLink})
+                        ), 
 
                         (this.props.trigger.email_pattern) ? React.createElement("i", {className: "fa fa-envelope"}) : ""
                       )
                       ), 
                       React.createElement("div", {className: "ellipsis", style: {width:300,fontSize:10}}, 
                         company_info.description
+                      ), 
+                      React.createElement("div", {className: "ellipsis", style: {width:300,fontSize:10}}, 
+                        (company_info.location) ? React.createElement("span", null, React.createElement("i", {className: "fa fa-map-marker"}), "  ") : "", 
+                        company_info.geo.city +", "+company_info.geo.state, 
+
+                        " " + ' ' +
+                        " " + ' ' +
+                        " ", 
+
+                        (company_info.metrics.employees) ? React.createElement("span", null, React.createElement("i", {className: "fa fa-users"}), "  ") : "", 
+                        company_info.metrics.employees + " employees"
                       )
                     ), 
 
-                    React.createElement(HiringSignalInfo, {trigger: this.props.trigger}), 
+                    React.createElement(SignalInfo, {trigger: this.props.trigger}), 
                     React.createElement(EmployeeInfo, {employees: this.props.employees}), 
 
 
@@ -192,12 +235,12 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
 var DetailLabel = React.createClass({displayName: 'DetailLabel',
   render: function() {
     return (
-      React.createElement("label", {style: {border:"3px solid #eee",fontWeight:800,float:"left",color:"#ddd",marginRight:5, borderRadius:5,paddingLeft:5,paddingRight:5,display:"block",fontSize:11}}, " ", this.props.text, " ")
+      React.createElement("label", {style: {border:"3px solid #eee",fontWeight:800,float:"left",color:"#ddd",marginRight:5, borderRadius:5,paddingLeft:5,paddingRight:5,display:"block",fontSize:11,backgroundColor:"white"}}, " ", this.props.text, " ")
     )
   } 
 })
 
-var HiringSignalInfo = React.createClass({displayName: 'HiringSignalInfo',
+var SignalInfo = React.createClass({displayName: 'SignalInfo',
   getInitialState: function() {
     return {
     }
@@ -207,7 +250,10 @@ var HiringSignalInfo = React.createClass({displayName: 'HiringSignalInfo',
     return (
       React.createElement("td", {style: {padding:5,width:"35%"}}, 
         React.createElement("h5", null), 
-        React.createElement("h5", null, React.createElement("small", null, "Tweeted out this workd blah blah")), 
+        React.createElement("h5", null, React.createElement("small", null, 
+            React.createElement("i", {className: "fa fa-suitcase"}), "  ", 
+            this.props.trigger.job_title
+        )), 
         React.createElement(DetailLabel, {text: this.props.trigger.source.toUpperCase()}), 
         React.createElement(DetailLabel, {text: "HIRING SIGNAL"})
       )
@@ -462,6 +508,10 @@ var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
   },
 
   render: function() {
+    /*
+      <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
+      <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane>
+    */
     return (
       React.createElement(Modal, {show: this.props.showModal, onHide: this.props.closeModal, bsSize: "medium", 'aria-labelledby': "contained-modal-title-lg", style: {fontFamily:"proxima-nova !important"}}, 
         React.createElement(Modal.Header, {closeButton: true}, 
@@ -472,11 +522,9 @@ var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
           React.createElement("input", {className: "form-control", placeholder: "Trigger Name"}), 
           React.createElement("hr", null), 
           React.createElement(TabbedArea, {defaultActiveKey: 1}, 
-            React.createElement(TabPane, {eventKey: 1, tab: "Twitter"}, React.createElement(CreateTwitterTrigger, null)), 
-            React.createElement(TabPane, {eventKey: 2, tab: "Hiring"}, React.createElement(CreateHiringTrigger, null)), 
-            React.createElement(TabPane, {eventKey: 3, tab: "Press"}, React.createElement(CreatePressTrigger, null)), 
-            React.createElement(TabPane, {eventKey: 4, tab: "Industry"}, React.createElement(CreateIndustryTrigger, null)), 
-            React.createElement(TabPane, {eventKey: 5, tab: "News"}, React.createElement(CreateIndustryTrigger, null))
+            React.createElement(TabPane, {eventKey: 1, tab: "Hiring"}, React.createElement(CreateHiringTrigger, null)), 
+            React.createElement(TabPane, {eventKey: 2, tab: "Press"}, React.createElement(CreatePressTrigger, null)), 
+            React.createElement(TabPane, {eventKey: 3, tab: "Industry"}, React.createElement(CreateIndustryTrigger, null))
           ), 
           React.createElement("hr", null), 
           React.createElement("h5", null, "Enter Employee Title Keyword"), 
@@ -1520,7 +1568,8 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
 var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
   getInitialState: function() {
     return {
-      count: "~",
+      company_count: "~",
+      employee_count: "~",
       hover: false
     }
   },
@@ -1533,7 +1582,10 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
       dataType:"json",
       success: function(res) {
         console.log(res)
-        _this.setState({count: res.count})
+        _this.setState({
+          company_count: res.count,
+          employee_count: res.employee_count
+        })
       },
       error: function(err) {
         console.log(err)
@@ -1581,8 +1633,15 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
     return (
       React.createElement("div", {style: _style, onMouseOver: this.mouseOver, onMouseOut: this.mouseOut, 
           onClick: this.gotoProfile}, 
-        React.createElement("h5", null, " ", this.props.profile.name, 
-          React.createElement("small", {style: {float:"right",marginTop:2}}, "(", this.state.count, ")")
+        React.createElement("h6", null, " ", this.props.profile.name, 
+          React.createElement("small", {style: {float:"right",marginTop:2}}, 
+            React.createElement("i", {className: "fa fa-building"}), 
+              this.state.company_count), 
+            " " + ' ' +
+            " ", 
+            React.createElement("small", {style: {float:"right",marginTop:2,marginRight:10}}, 
+            React.createElement("i", {className: "fa fa-user"}), 
+              this.state.employee_count)
         ), 
         React.createElement("h5", {style: {marginBottom:0,marginTop:5}}, 
           React.createElement("small", null, 
@@ -1591,7 +1650,7 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
         ), 
         React.createElement("h5", {style: {marginBottom:0,marginTop:2}}, 
           React.createElement("small", null, 
-          React.createElement("i", {className: "fa fa-map-marker", style: {width:15}}), "  ", 
+            (this.props.profile.locales) ? React.createElement("span", null, React.createElement("i", {className: "fa fa-map-marker", style: {width:15}}), "  ") : "", 
             this.props.profile.profiles[0].locales.join(", "))
         ), 
         React.createElement("h5", {style: {marginBottom:0,marginTop:2}}, 

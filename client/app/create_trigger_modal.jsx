@@ -73,6 +73,10 @@ var CreateTriggerModal = React.createClass({
   },
 
   render: function() {
+    /*
+      <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
+      <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane>
+    */
     return (
       <Modal show={this.props.showModal} onHide={this.props.closeModal} bsSize='medium' aria-labelledby='contained-modal-title-lg' style={{fontFamily:"proxima-nova !important"}}>
         <Modal.Header closeButton>
@@ -83,11 +87,9 @@ var CreateTriggerModal = React.createClass({
           <input className="form-control" placeholder="Trigger Name"/>
           <hr/>
           <TabbedArea defaultActiveKey={1}>
-            <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
-            <TabPane eventKey={2} tab='Hiring'><CreateHiringTrigger /></TabPane>
-            <TabPane eventKey={3} tab='Press'><CreatePressTrigger /></TabPane>
-            <TabPane eventKey={4} tab='Industry'><CreateIndustryTrigger /></TabPane>
-            <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane>
+            <TabPane eventKey={1} tab='Hiring'><CreateHiringTrigger /></TabPane>
+            <TabPane eventKey={2} tab='Press'><CreatePressTrigger /></TabPane>
+            <TabPane eventKey={3} tab='Industry'><CreateIndustryTrigger /></TabPane>
           </TabbedArea>
           <hr/>
           <h5>Enter Employee Title Keyword</h5>

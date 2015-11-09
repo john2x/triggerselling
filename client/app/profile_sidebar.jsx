@@ -42,7 +42,8 @@ var ProfileSidebar = React.createClass({
 var HiringProfileCard = React.createClass({
   getInitialState: function() {
     return {
-      count: "~",
+      company_count: "~",
+      employee_count: "~",
       hover: false
     }
   },
@@ -55,7 +56,10 @@ var HiringProfileCard = React.createClass({
       dataType:"json",
       success: function(res) {
         console.log(res)
-        _this.setState({count: res.count})
+        _this.setState({
+          company_count: res.count,
+          employee_count: res.employee_count
+        })
       },
       error: function(err) {
         console.log(err)
@@ -103,9 +107,16 @@ var HiringProfileCard = React.createClass({
     return (
       <div style={_style} onMouseOver={this.mouseOver} onMouseOut={this.mouseOut}
           onClick={this.gotoProfile}>
-        <h5> {this.props.profile.name} 
-          <small style={{float:"right",marginTop:2}}>({this.state.count})</small> 
-        </h5>
+        <h6> {this.props.profile.name} 
+          <small style={{float:"right",marginTop:2}}>
+            <i className="fa fa-building" />
+              {this.state.company_count}</small> 
+            &nbsp;
+            &nbsp;
+            <small style={{float:"right",marginTop:2,marginRight:10}}>
+            <i className="fa fa-user" />
+              {this.state.employee_count}</small> 
+        </h6>
         <h5 style={{marginBottom:0,marginTop:5}}>
           <small>
           <i className="fa fa-suitcase" style={{width:15}}/> &nbsp;
@@ -113,7 +124,7 @@ var HiringProfileCard = React.createClass({
         </h5>
         <h5 style={{marginBottom:0,marginTop:2}}>
           <small>
-          <i className="fa fa-map-marker" style={{width:15}}/> &nbsp;
+            {(this.props.profile.locales) ? <span><i className="fa fa-map-marker" style={{width:15}}/> &nbsp;</span> : ""}
             {this.props.profile.profiles[0].locales.join(", ")}</small>
         </h5>
         <h5 style={{marginBottom:0,marginTop:2}}>

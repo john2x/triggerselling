@@ -17,14 +17,6 @@ from google import Crawlera
 import time
 import bitmapist
 import math
-#from people_signal import PeopleSignal
-#from clearspark import ClearSpark
-
-'''
-from rq import Queue
-from worker import conn
-q = Queue(connection=conn)
-'''
 
 #browser = Browser("phantomjs")
 
@@ -122,6 +114,7 @@ class NewsWire():
         data = {"website":website, "company_name":company_name,
                 "article":article}
         print data
+        return data
         # TODO insert into rethink
 
     def paginate(self, url):
@@ -223,7 +216,17 @@ class MarketWired:
         # TODO - parse signal
         Helper()._persist(df, "marketwired_industry")
 
-    def _parse_article_html(self, objectId, title, industry_press=None):
+    def _parse_article_html(self, html):
+        bs = BeautifulSoup(html)
+        article = bs.find("div",{"class":"mw_release"})
+        article = article.text if article else None
+        company_name = bs.find("span",{"class":"b"}).text
+        website = bs.find("table",{"class":"news-table"}).find("a")["href"]
+        domain = ".".join(urlparse.urlparse(website).netloc.split(".")[-2:])
+        info = {"article": article, "company_name": company_name, "domain":domain}
+        return info
+
+    def _old_parse_article_html(self, objectId, title, industry_press=None):
         df = Google().search("{0} site:marketwired.com".format(title))
         html = Google().cache(df.link.tolist()[0])
         article = BeautifulSoup(html).find("div",{"class":"mw_release"})
@@ -254,11 +257,6 @@ class MarketWired:
 
         info = {"article": article, "company_name": company_name, 
                 "website":website, "links":links}
-        if industry_press:
-            print Parse().create("IndustryPress", info).json()
-        else:
-            print Parse().create("Press", info).json()
-        print info
         return info
             
     def _parse_search_html(self, html):
@@ -316,37 +314,31 @@ class BusinessWire():
     def remove_non_ascii(self, text):
         return ''.join(i for i in text if ord(i)<128)
                 
-    def _parse_article_html(self, objectId, url, industry_press=None):
-        #browser.visit("http://www.businesswire.com/news/home/20150409005073/en")
-        """
-        browser = Browser("phantomjs")
-        browser.visit(url)
-        time.sleep(2)
-        html = browser.html
-        """
-        r = requests.get("http://localhost:8950/render.html?", params= {"url":url})
-        html = r.text
-
-        #html = requests.get(url).text
+    def _parse_article_html(self, html):
         html = BeautifulSoup(html)
         article = html.find("div", {"class":"bw-release-story"})
         company_name = html.find("h3", {"itemprop":"sourceOrganization"})
+        domain = company_name["itemid"] if "itemid" in company_name.attrs.keys() else None
         company_name = company_name.find("span", {"itemprop":"name"})
         vals = [article, company_name]
         cols = ["article", "company_name"]
-        #TODO - itemprop="name" company_name
-        #TODO - persist in parse
+        vals = [BusinessWire().remove_non_ascii(i.text) if i else "" for i in vals]
+        data = dict(zip(cols, vals))
+        data["domain"] = domain
+        return data
+      
+    def _old_parse_article_html(self, objectId, url, industry_press=None):
+        html = BeautifulSoup(html)
+        article = html.find("div", {"class":"bw-release-story"})
+        company_name = html.find("h3", {"itemprop":"sourceOrganization"})
+        domain = company_name["itemid"] if "itemid" in company_name.attrs.keys() else None
+        company_name = company_name.find("span", {"itemprop":"name"})
+        vals = [article, company_name]
+        cols = ["article", "company_name"]
         vals = [self.remove_non_ascii(i.text) if i else "" for i in vals]
         data = dict(zip(cols, vals))
-        #print data["company_name"]
-        print data
-        #q.enqueue(ClearSpark()._bulk_company_info, data["company_name"])
-        if industry_press:
-          r = Parse().update("IndustryPress", objectId, data)
-        else:
-          r = Parse().update("Press", objectId, data)
-        print r.json()
-        browser.quit()
+        data["domain"] = domain
+        return data
             
     def _parse_search_html(self, html):
         bs, li = BeautifulSoup(html), []
@@ -394,21 +386,23 @@ class PRNewsWire():
             pages.append(html)
         return pages
             
-    def _parse_article_html(self, objectId, url, industry_press=None):
-        #html = requests.get(url).text
-        html = Crawlera().get(url).text
-        article = BeautifulSoup(html).find("div",{"id":"ReleaseContent"}).text
+    def _parse_article_html(self, html):
+        # PRNewsWire
+        bs = BeautifulSoup(html)
+        links = [".".join(urlparse.urlparse(i["href"]).netloc.split(".")[-2:]) 
+         for i in bs.find_all("a") if "target" in i.attrs.keys()]
+        # Get Article Content and Company Name
+        links = links[1:-2]
+
+        #article = BeautifulSoup(html).find("div",{"class":"col-md-9"}).text
+        article = "\n".join([i.text for i in BeautifulSoup(html).find_all("p",{"itemprop":"articleBody"})])
         #
-        ps = [p.text.split("SOURCE ")[-1] 
+        ps = [p.text.split("SOURCE ")[-1]
               for p in BeautifulSoup(r.text).find_all("p") if "SOURCE " in p.text]
         company_name = ps[0]
         #q.enqueue(ClearSpark()._bulk_company_info, company_name)
-        data = {"article":article, "company_name":company_name}
-        if industry_press:
-          r = Parse().update("IndustryPress", objectId, data)
-        else:
-          r = Parse().update("Press", objectId, data)
-        print r.json()
+        data = {"article":article, "company_name":company_name,"links":list(set(links))}
+        return data
 
     def _parse_search_html(self, html):
         bs, li = BeautifulSoup(html), []
@@ -463,8 +457,14 @@ class PRNewsWire():
         Helper()._persist(df, "prnewswire_industry")
 
 class PRWeb:
-    def _parse_article_html(self, objectId, url):
-        ''' '''
+    def _parse_article_html(self, html):
+        bs = BeautifulSoup(html)
+        links = bs.find_all("div",{"class":"box"})[1].find_all("a")[0]
+        r = requests.get(links["href"], allow_redirects=True)
+        domain = ".".join(r.url.split(".")[-2:])
+        article = bs.find("div",{"class":"article-text"})
+        data = {"company_name":links.text, "article":article.text, "domain":domain}
+        return data
 
 class Press:
     def _all_press(self):

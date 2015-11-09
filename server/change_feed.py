@@ -130,21 +130,8 @@ def email_pattern():
     feed = yield r.table('press_events').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
-        if "newswire.ca" in df.link:
-            q.enqueue(NewsWire()._parse_article_html, objectId, row.url)
-        elif "prnewswire" in df.link:
-            q.enqueue(PRNewsWire()._parse_article_html, objectId, row.url)
-        elif "businesswire" in df.link:
-            q.enqueue(BusinessWire()._parse_article_html, objectId, row.url)
-        elif "marketwire" in df.link:
-            q.enqueue(MarketWired()._parse_article_html, objectId, row.url)
-
-        # TODO - screen scrape press
-        # ----------------------------
-        # TODO - on completion [clearbit search]
-        # TODO - email pattern
-        # ----------------------------
-        # TODO - filter find out which profiles this event fits into
+        if change["old_val"] == None:
+            http_client.fetch(url, AsyncPressScrape()._parse_response)
 
 @gen.coroutine
 def email_pattern():

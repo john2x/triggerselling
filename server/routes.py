@@ -231,9 +231,9 @@ def profile_counts(profile_id):
     #TODO - add filter profile_id filter
     conn = rethink_conn.conn()
     t = pd.DataFrame(list(r.table("triggers").filter({"profile":profile_id}).run(conn)))
-    e = r.table("company_employees").group("company_id").count().run(conn)
-    e = pd.Series(e)[list(t.company_key.unique())]
-    data = {"count":t.shape[0], "employee_count":len(e)}
+    e = pd.DataFrame(list(r.table("company_employees").run(conn)))
+    ee = len(e[e.company_id.isin(t.company_key.unique())])
+    data = {"count":t.shape[0], "employee_count":ee}
     return make_response(json.dumps(data))
 
 @app.route("/<profile_id>/trigger/employees")
