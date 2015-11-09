@@ -99,8 +99,11 @@ class GoogleEmployeeSearch:
 
         un, pw = "customero", "iUyET3ErxR"
         cloak = "http://{0}:{1}@paygo.crawlera.com/fetch?".format(un, pw)
+
+        un, pw = "5846ea676dc7405eac44d83201127e7f", ""
+        CRAWLERA_URL = "http://{0}:{1}@proxy.crawlera.com/fetch?".format(un, pw)
         # TODO - urllib
-        cloak = cloak + urllib.urlencode({"url": cloak})
+        cloak = CRAWLERA_URL + urllib.urlencode({"url": url})
         return cloak
 
     def _employees(self, company_name="", keyword=None):

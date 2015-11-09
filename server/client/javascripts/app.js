@@ -1164,8 +1164,8 @@ var LandingPage = React.createClass({displayName: 'LandingPage',
           React.createElement("h1", null, "Leverage The Power Of Signal Based Selling"), 
           React.createElement("br", null), 
           React.createElement("hr", null), 
-          React.createElement("h4", {style: {marginTop:10}}, "STOP WASTING YOUR SALES REPS TIME COLD CALLING "), 
-          React.createElement("h4", {style: {marginTop:20,fontStyle:"italic"}}, "START REACHING OUT TO PROSPECTS AT THE RIGHT TIME"), 
+          React.createElement("h3", {style: {marginTop:10,fontWeight:100}}, "STOP WASTING TIME COLD CALLING "), 
+          React.createElement("h3", {style: {marginTop:20,fontWeight:100}}, "START REACHING OUT AT ", React.createElement("span", {style: {fontStyle:"italic"}}, "THE RIGHT TIME")), 
           React.createElement("input", {className: "form-control input-lg", style: {marginTop:30,width:300,borderRadius:2,fontSize:16}, placeholder: "EMAIL"}), 
           React.createElement("input", {className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "PASSWORD", type: "password"}), 
           React.createElement("input", {className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "CONFIRM PASSWORD", type: "password"}), 
@@ -1173,7 +1173,7 @@ var LandingPage = React.createClass({displayName: 'LandingPage',
         ), 
 
         React.createElement("div", {className: "col-md-6"}, 
-          React.createElement("img", {src: "images/radar_2.png", style: {height:500,float:"right"}})
+          React.createElement("img", {src: "images/signaliq.png", style: {height:450,float:"left",marginLeft:100,marginTop:20}})
         )
         )
       )

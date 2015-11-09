@@ -37,8 +37,8 @@ var LandingPage = React.createClass({
           <h1>Leverage The Power Of Signal Based Selling</h1>
           <br/>
           <hr/>
-          <h4 style={{marginTop:10}}>STOP WASTING YOUR SALES REPS TIME COLD CALLING </h4>
-          <h4 style={{marginTop:20,fontStyle:"italic"}}>START REACHING OUT TO PROSPECTS AT THE RIGHT TIME</h4>
+          <h3 style={{marginTop:10,fontWeight:100}}>STOP WASTING TIME COLD CALLING </h3>
+          <h3 style={{marginTop:20,fontWeight:100}}>START REACHING OUT AT <span style={{fontStyle:"italic"}}>THE RIGHT TIME</span></h3>
           <input className="form-control input-lg" style={{marginTop:30,width:300,borderRadius:2,fontSize:16}} placeholder="EMAIL"/>
           <input className="form-control input-lg" style={{marginTop:10,width:300,borderRadius:2,fontSize:16}} placeholder="PASSWORD" type="password"/>
           <input className="form-control input-lg" style={{marginTop:10,width:300,borderRadius:2,fontSize:16}} placeholder="CONFIRM PASSWORD" type="password"/>
@@ -46,7 +46,7 @@ var LandingPage = React.createClass({
         </div>
 
         <div className="col-md-6" >
-          <img src="images/radar_2.png" style={{height:500,float:"right"}}/>
+          <img src="images/signaliq.png" style={{height:450,float:"left",marginLeft:100,marginTop:20}}/>
         </div>
         </div>
       </div>

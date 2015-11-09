@@ -7,6 +7,7 @@ from tornado.concurrent import Future, chain_future
 import functools
 from scraping.company_api.company_name_to_domain import CompanyNameToDomain
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
+from scraping.email_pattern.email_hunter import EmailHunter
 import json
 import pandas as pd
 import urlparse
@@ -28,6 +29,7 @@ class AsyncCompanyResearch:
         conn = yield conn_future
         if response.code != 200:
             """ """
+        print "clearbit", response.code
         company = json.loads(response.body)
         yield r.table('companies').insert(company).run(conn)
         data = {"company_domain_research_completed": r.now()} 
@@ -45,8 +47,10 @@ class AsyncCompanyResearch:
     def parse_employees(self, response):
         conn = yield conn_future
         d = dict(urlparse.parse_qsl(urlparse.urlparse(response.effective_url).query))
-        print d
+        print d, "employees", response.code
+        if response.code != 200: return
         res = GoogleEmployeeSearch()._parse_response(response.body, d["company_name"])
+        print "employees found", d["company_name"], res.shape
         yield r.table('company_employees').insert(res.to_dict("r")).run(conn)
         epsc = "employee_search_completed"
         yield r.table("triggers").get(d["company_key"]).update({epsc: r.now()}).run(conn)
@@ -55,6 +59,7 @@ class AsyncCompanyResearch:
     def emailhunter_response(self, response):
         conn = yield conn_future
         data = EmailHunter()._parse_response(response.body)
+        print "emailhunter", response.code
         yield r.table('triggers').get(_id).update(data).run(conn)
         ehsc = "emailhunter_search_completed"
         t = r.table('triggers').filter({"domain": company["domain"]})
@@ -64,7 +69,7 @@ class AsyncCompanyResearch:
 
     @tornado.gen.coroutine
     def start(self):
-        print "started"
+        #print "started"
         conn = yield conn_future
         triggers = r.table("triggers").eq_join("profile",r.table("prospect_profiles"))
         triggers = yield triggers.zip().coerce_to("array").run(conn)
@@ -83,6 +88,11 @@ class AsyncCompanyResearch:
 
         if ehsc in triggers.columns:
             t3 = triggers[triggers[ehsc].isnull()]
+
+
+        print t1[t1.domain.notnull()].shape
+        print t2[t2.domain.notnull()].shape
+        print t3[t3.domain.notnull()].shape
 
         for val in t1[t1.domain.notnull()].to_dict("r")[:100]:
             #print "CLEARBIT EMP CRON"
@@ -107,7 +117,7 @@ class AsyncCompanyResearch:
             http_client.fetch(url, AsyncCompanyResearch().parse_employees)
 
         for val in t3[t3.domain.notnull()].to_dict("r")[:100]:
-            print "EMAILHUNTER EMP CRON"
+            #print "EMAILHUNTER EMP CRON"
             api_key = "493b454750ba86fd4bd6c2114238ef43696fce14"
             url = "http://api.emailhunter.co/v1/search?domain={0}&api_key={1}"
             url = url.format(val["domain"], api_key)
