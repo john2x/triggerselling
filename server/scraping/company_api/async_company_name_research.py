@@ -16,12 +16,11 @@ class AsyncCompanyNameResearch:
     @tornado.gen.coroutine
     def handle_response(self, response):
         conn = yield conn_future
-        """
         if response.code != 200:
+            return
             http_client.fetch(response.effective_url, 
             AsyncCompanyNameResearch().handle_response)
-            return
-        """
+
         df = CompanyNameToDomain()._persist(response)
         #print response.effective_url, df
         #print df["search_engine"], df["qry"] 
