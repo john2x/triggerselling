@@ -28,11 +28,11 @@ class AsyncCompanyNameResearch:
         
     @tornado.gen.coroutine
     def start(self):
-        print "started"
         conn = yield conn_future
         triggers = yield r.table("triggers").coerce_to("array").run(conn)
         triggers = pd.DataFrame(triggers).drop_duplicates("company_name")
-        triggers = triggers[triggers.domain.isnull()]
+        if "domain" in triggers.columns:
+            triggers = triggers[triggers.domain.isnull()]
         triggers = triggers.sort("createdAt",ascending=False)
         for i, trigger in triggers.head(50).iterrows():
             for url in CompanyNameToDomain()._make_urls(trigger["company_name"]):

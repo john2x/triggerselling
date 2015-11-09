@@ -3,12 +3,10 @@ import rethinkdb as r
 
 def conn():
     if 'DEBUG' in os.environ:
-        conn = r.connect(db="triggeriq")
+        #conn = r.connect(db="triggeriq")
+        conn = r.connect(db="triggeriq", 
+                         auth_key="PPxYaDVvVmDhXccvM2qdGzFhyIdwcLpYSuyGIbTFD5c")
     else:
-        print "ENVIRONMENT"
-        print os.environ
-        print os.environ.keys()
-        print os.environ.values()
         conn = r.connect(
           host='rethinkdb_tunnel',
           #host=os.environ['RETHINKDB_HOST'],
@@ -21,7 +19,7 @@ def conn():
 def args():
     if 'DEBUG' in os.environ:
         #conn = r.connect(db="triggeriq")
-        conn = {"db":"triggeriq"}
+        conn = {"db":"triggeriq", "auth_key":"PPxYaDVvVmDhXccvM2qdGzFhyIdwcLpYSuyGIbTFD5c"}
     else:
         conn = r.connect(
           host='rethinkdb_tunnel',
@@ -30,6 +28,7 @@ def args():
           db=os.environ['RETHINKDB_DB'],
           auth_key=os.environ['RETHINKDB_AUTH_KEY']
         )
+
         conn = {
           "host":'rethinkdb_tunnel',
           #"host":os.environ['RETHINKDB_HOST'],

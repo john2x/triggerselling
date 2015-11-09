@@ -1,0 +1,76 @@
+# -- ELK -- #
+elk:
+  image: sebp/elk
+  ports:
+    - "5601:5601"
+    - "9200:9200"
+    - "5000:5000"
+
+# -- Sentry -- #
+sentry:
+  image: sentry
+  links:
+    - redis
+    - postgres
+  ports:
+    - "8081:9000"
+
+celery-beat:
+  image: sentry
+  links:
+    - redis
+    - postgres
+  command: sentry celery beat
+
+celery-worker:
+  image: sentry
+  links:
+    - redis
+    - postgres
+  command: sentry celery worker
+
+redis:
+  image: redis
+
+postgres:
+  image: postgres
+  environment:
+    - POSTGRES_PASSWORD=sentry
+    - POSTGRES_USER=sentry
+  volumes:
+    - /var/lib/postgresql/data
+
+# -- Monitoring  --#
+influxsrv:
+  image: tutum/influxdb
+  name: influxsrv
+  volumes:
+    - ./data:/data:rw
+  ports:
+    - "8083:8083"
+    - "8086:8086"
+  expose:
+    - "8090"
+    - "8099"
+  environment:
+    - PRE_CREATE_DB=cadvisor
+cadvisor:
+  image: google/cadvisor
+  name: cadvisor
+  command: -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influxsrv:8086
+  ports:
+    - "8080:8080"
+  volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+  links:
+    - influxsrv:influxsrv
+grafana:
+  image: grafana/grafana
+  name: grafana
+  ports:
+    - "3000:3000"
+  links:
+    - influxsrv:influxsrv

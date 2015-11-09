@@ -44,3 +44,4 @@ rethinkdb_tunnel:
   restart: always
   ports:
     - "28015"
+

@@ -3,7 +3,7 @@ from splinter import Browser
 import rethinkdb as r
 import time
 import os
-from worker import conn
+#from worker import conn
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
@@ -46,18 +46,17 @@ class ZipRecruiter:
             desc = listing.find('p',{'itemprop':'description'})
             desc = desc.text.strip() if desc else ""
             time = listing.find('time',{'itemprop':'datePosted'})
-            time = time["datetime"] if time else ""
+            time = time["datetime"] if time else None
             link = listing.find("a")
             link = link["href"] if link else ""
             cols = ["job_title","company_name","location","summary","date",'timestamp',"link"]
-            print time
-            print time, arrow.get(time).timestamp
-            vals = [title, company, location, desc, time, arrow.get(time).timestamp, link]
+            timestamp = arrow.get().timestamp
+            #print time, arrow.get(time).timestamp
+            vals = [title, company, location, desc, time, timestamp, link]
             listings.append(dict(zip(cols, vals)))
         return pd.DataFrame(listings)
     
-    def _signal(self, qry, locale, profile, report, country=None):
-        
+    def _signal(self, qry, locale, profile, country=None):
         start_time = time.time()
         html = self._html(qry, 1, locale, country)
         listings = self._listings(html)
