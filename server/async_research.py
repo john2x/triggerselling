@@ -51,6 +51,9 @@ class AsyncCompanyResearch:
         if response.code != 200: return
         res = GoogleEmployeeSearch()._parse_response(response.body, d["company_name"])
         print "employees found", d["company_name"], res.shape
+        #TODO - add company_id
+        res["company_id"] = d["company_key"]
+        res["profile_id"] = d["profile"]
         yield r.table('company_employees').insert(res.to_dict("r")).run(conn)
         epsc = "employee_search_completed"
         yield r.table("triggers").get(d["company_key"]).update({epsc: r.now()}).run(conn)
