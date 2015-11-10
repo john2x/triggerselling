@@ -55,6 +55,7 @@ class AsyncCompanyResearch:
         res["company_id"] = d["company_key"]
         res["profile_id"] = d["profile"]
         yield r.table('company_employees').insert(res.to_dict("r")).run(conn)
+        #TODO increment employee_count in table
         epsc = "employee_search_completed"
         yield r.table("triggers").get(d["company_key"]).update({epsc: r.now()}).run(conn)
 
