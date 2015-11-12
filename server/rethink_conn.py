@@ -4,8 +4,7 @@ import rethinkdb as r
 def conn():
     if 'DEBUG' in os.environ:
         #conn = r.connect(db="triggeriq")
-        conn = r.connect(db="triggeriq", 
-                         auth_key="PPxYaDVvVmDhXccvM2qdGzFhyIdwcLpYSuyGIbTFD5c")
+        conn = r.connect(db="triggeriq", auth_key="PPxYaDVvVmDhXccvM2qdGzFhyIdwcLpYSuyGIbTFD5c")
     else:
         conn = r.connect(
           host='rethinkdb_tunnel',

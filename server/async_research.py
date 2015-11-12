@@ -3,6 +3,7 @@ import rethinkdb as r
 import rethink_conn
 from apscheduler.schedulers.tornado import TornadoScheduler
 from tornado import ioloop, gen
+import arrow
 from tornado.concurrent import Future, chain_future
 import functools
 from scraping.company_api.company_name_to_domain import CompanyNameToDomain
@@ -54,6 +55,7 @@ class AsyncCompanyResearch:
         #TODO - add company_id
         res["company_id"] = d["company_key"]
         res["profile_id"] = d["profile"]
+        res["timestamp"] = arrow.now().timestamp
         yield r.table('company_employees').insert(res.to_dict("r")).run(conn)
         #TODO increment employee_count in table
         epsc = "employee_search_completed"
