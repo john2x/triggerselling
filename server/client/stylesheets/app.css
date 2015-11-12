@@ -14256,6 +14256,7 @@ html {
   font-family: 'proxima-nova';
 }
 .create-signal-modal {
+  font-family: proxima-nova;
   width: 850px;
   height: 600px;
 }

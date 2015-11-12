@@ -171,8 +171,8 @@ if __name__ == "__main__":
     tornado.ioloop.IOLoop.current().add_callback(trigger_changes)
 
     scheduler = TornadoScheduler()
-    #scheduler.add_job(AsyncCompanyNameResearch().start, 'interval', seconds=1)
-    #scheduler.add_job(AsyncCompanyResearch().start, 'interval', seconds=10)
+    scheduler.add_job(AsyncCompanyNameResearch().start, 'interval', seconds=1)
+    scheduler.add_job(AsyncCompanyResearch().start, 'interval', seconds=10)
     scheduler.start()
 
     tornado.ioloop.IOLoop.current().start()
