@@ -37,8 +37,9 @@ class EmailHunter:
         return e.shape[0]
 
     def _parse_response(self, html):
+        #html = response.body
         ep = json.loads(html)
-        print ep.keys()
+        #print ep.keys()
         if "pattern" in ep.keys():
             del ep["emails"]
             if ep["pattern"] == "none":
@@ -53,6 +54,7 @@ class EmailHunter:
         else:
             ep = None
         data = {"email_pattern":ep, "emailhunter_search_completed": r.now()}
+        print data
         return data
 
     def _update_record(self, domain, _id):

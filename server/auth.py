@@ -9,9 +9,11 @@ import bcrypt
 
 from flask import current_app, request, jsonify, Blueprint
 from flask_jwt import JWT, jwt_required, current_identity
+from flask import Flask, send_from_directory, render_template, make_response, request
 from datetime import datetime, timedelta
 import re
 import rethink_conn
+import json
 
 from werkzeug.local import LocalProxy
 
@@ -161,6 +163,28 @@ def signup():
     # Create user
     token = _auth.create_user(email, password.encode('utf-8'))
     # Create Redis Token And Current Plan
+    # TODO
+    # days left till end of trial
+    # end of current plan
+    # billing cycle
 
     # return token
     return jsonify({'status': 'OK', 'token': token})
+
+# TODO - ADD
+
+@auth.route('/trial')
+def free_trial():
+    data = {"days_left": 1}
+    return make_response(json.dumps(data))
+
+@auth.route('/stripe/add_card')
+def stripe_add_card():
+    data = {"days_left": 1}
+    return make_response(json.dumps(data))
+
+@auth.route('/stripe/change_plan')
+def stripe_change_plan():
+    data = {"days_left": 1}
+    return make_response(json.dumps(data))
+

@@ -14,7 +14,7 @@ var Navbar = React.createClass({
           <li className="app-logo" style={{marginLeft:0}} onClick={this.gotoHome}>
             <div>
             <img src="images/blaze-logo.png" style={{marginTop:4,height:18,marginLeft:-15,display:"none"}}/>
-            <div style={{}} style={{color:"#000"}}> TriggerIQ</div>
+            <div style={{}} style={{color:"#000"}}> SignalIQ</div>
             </div>
           </li>
           <div style={{display:"block"}}>

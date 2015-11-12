@@ -20,6 +20,10 @@ var LandingPage = React.createClass({
   },
 
   componentDidMount: function() {
+    $('.form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
   },
 
   render: function() {
@@ -39,9 +43,9 @@ var LandingPage = React.createClass({
           <hr/>
           <h3 style={{marginTop:10,fontWeight:100}}>STOP WASTING TIME COLD CALLING </h3>
           <h3 style={{marginTop:20,fontWeight:100}}>START REACHING OUT AT <span style={{fontStyle:"italic"}}>THE RIGHT TIME</span></h3>
-          <input className="form-control input-lg" style={{marginTop:30,width:300,borderRadius:2,fontSize:16}} placeholder="EMAIL"/>
-          <input className="form-control input-lg" style={{marginTop:10,width:300,borderRadius:2,fontSize:16}} placeholder="PASSWORD" type="password"/>
-          <input className="form-control input-lg" style={{marginTop:10,width:300,borderRadius:2,fontSize:16}} placeholder="CONFIRM PASSWORD" type="password"/>
+          <input type="text" className="form-control input-lg" style={{marginTop:30,width:300,borderRadius:2,fontSize:16}} placeholder="EMAIL"/>
+          <input type="text" className="form-control input-lg" style={{marginTop:10,width:300,borderRadius:2,fontSize:16}} placeholder="PASSWORD" type="password"/>
+          <input type="text" className="form-control input-lg" style={{marginTop:10,width:300,borderRadius:2,fontSize:16}} placeholder="CONFIRM PASSWORD" type="password"/>
           <a className="btn btn-lg btn-success" style={{marginTop:10,width:150,fontSize:16}}>SIGN UP</a>
         </div>
 

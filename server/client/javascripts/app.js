@@ -368,8 +368,10 @@ var CompanyDetailOverlay = React.createClass({displayName: 'CompanyDetailOverlay
           )
           )), 
         React.createElement("h5", {style: {width:"73%",overflow:"auto",height:45}}, ci.description), 
-        React.createElement("input", {className: "form-control input-sm", value: ci.domain, style: {width:300}}), 
-        React.createElement("input", {className: "form-control input-sm", value: company.email_pattern, style: {width:300}}), 
+        React.createElement("div", {style: {display:"none"}}, 
+          React.createElement("input", {className: "form-control input-sm", value: ci.domain, style: {width:300}}), 
+          React.createElement("input", {className: "form-control input-sm", value: company.email_pattern, style: {width:300}})
+        ), 
         React.createElement("hr", null), 
         React.createElement("div", {style: {height:"83%",overflow:"auto"}}, 
           employees
@@ -443,6 +445,7 @@ var Thumbnail= ReactBootstrap.Thumbnail
 
 var TwitterKeywords = require("search_bar")
 var SearchBar = require("search_bar")
+var Press = require("press")
 
 var CreateTwitterTrigger = React.createClass({displayName: 'CreateTwitterTrigger',
   render: function() {
@@ -458,87 +461,341 @@ var CreateTwitterTrigger = React.createClass({displayName: 'CreateTwitterTrigger
   }
 })
 
-var CreateHiringTrigger = React.createClass({displayName: 'CreateHiringTrigger',
-  render: function() {
-    return (
-      React.createElement("div", null, 
-        React.createElement("br", null), 
-        "Title Keywords:", 
-        React.createElement(TwitterKeywords, null), 
-        "Job Keyword Can Contain:", 
-        React.createElement(TwitterKeywords, null)
-      )
-    )
-  }
-})
-
-var CreatePressTrigger = React.createClass({displayName: 'CreatePressTrigger',
-  render: function() {
-    return (
-      React.createElement("div", null, 
-        React.createElement("br", null), 
-        "Title Keywords:", 
-        React.createElement(TwitterKeywords, null), 
-        "Job Keyword Can Contain:", 
-        React.createElement(TwitterKeywords, null)
-      )
-    )
-  }
-})
-
-var CreateIndustryTrigger = React.createClass({displayName: 'CreateIndustryTrigger',
-  render: function() {
-    return (
-      React.createElement("div", {style: {fontFamily:"proxima-nova"}}, 
-        React.createElement("br", null), 
-        "Title Keywords:", 
-        React.createElement(TwitterKeywords, null), 
-        "Job Keyword Can Contain:", 
-        React.createElement(TwitterKeywords, null)
-      )
-    )
-  }
-})
-
-var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
+var CreateEmployeeTitleTrigger = React.createClass({displayName: 'CreateEmployeeTitleTrigger',
   componentDidMount: function() {
-    $(".modal-md").css({"font-family":"proxima-nova"})
-    $(".tab-content").css({"font-family":"proxima-nova"})
-
+    //$(".hiring-signal").selectize()
+    $('.employee-title').selectize({
+        delimiter: ',',
+        persist: false,
+        create: function(input) {
+            return {
+                value: input,
+                text: input
+            }
+        }
+    });
   },
 
   render: function() {
-    /*
-      <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
-      <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane>
-    */
     return (
-      React.createElement(Modal, {show: this.props.showModal, onHide: this.props.closeModal, bsSize: "medium", 'aria-labelledby': "contained-modal-title-lg", style: {fontFamily:"proxima-nova !important"}}, 
-        React.createElement(Modal.Header, {closeButton: true}, 
-          React.createElement(Modal.Title, {id: "contained-modal-title-lg"}, "Create Trigger")
-        ), 
-        React.createElement(Modal.Body, null, 
-          React.createElement("h5", null, "Enter Trigger Name"), 
-          React.createElement("input", {className: "form-control", placeholder: "Trigger Name"}), 
-          React.createElement("hr", null), 
-          React.createElement(TabbedArea, {defaultActiveKey: 1}, 
-            React.createElement(TabPane, {eventKey: 1, tab: "Hiring"}, React.createElement(CreateHiringTrigger, null)), 
-            React.createElement(TabPane, {eventKey: 2, tab: "Press"}, React.createElement(CreatePressTrigger, null)), 
-            React.createElement(TabPane, {eventKey: 3, tab: "Industry"}, React.createElement(CreateIndustryTrigger, null))
-          ), 
-          React.createElement("hr", null), 
-          React.createElement("h5", null, "Enter Employee Title Keyword"), 
-          React.createElement(SearchBar, null)
-        ), 
-        React.createElement(Modal.Footer, null, 
-          React.createElement(Button, {onClick: this.props.onHide}, "Create Trigger")
+      React.createElement("div", null, 
+        React.createElement("input", {type: "text", className: "employee-title", placeholder: "Trigger Name"})
+      )
+    )
+  }
+})
+
+var CreateHiringTrigger = React.createClass({displayName: 'CreateHiringTrigger',
+  componentDidMount: function() {
+    //$(".hiring-signal").selectize()
+    $('.hiring-signal').selectize({
+        delimiter: ',',
+        persist: false,
+        create: function(input) {
+            return {
+                value: input,
+                text: input
+            }
+        }
+    });
+  },
+
+  render: function() {
+    return (
+      React.createElement("div", null, 
+        React.createElement("br", null), 
+        "Hiring Keywords:", 
+        React.createElement("input", {type: "text", className: "hiring-signal", placeholder: "Trigger Name"})
+      )
+    )
+  }
+})
+
+var CreatePressSubjectTrigger = React.createClass({displayName: 'CreatePressSubjectTrigger',
+  render: function() {
+    subjects = _.map(Press.subjects, function(sub) {
+      return (
+        React.createElement("label", {style: {width:200}, className: "subject-item"}, 
+          React.createElement("input", {type: "checkbox", className: "subject-check", 
+            'data-id': sub.subject, value: sub.id}), " ", sub.subject
+        )
+      )
+    })
+
+    return (
+      React.createElement("div", {style: {fontFamily:"proxima-nova",fontWeight:400,fontSize:12}}, 
+        React.createElement("br", null), " ", React.createElement("form", {id: "press-form-subjects"}, 
+          subjects
         )
       )
     )
   }
 })
 
+var CreatePressIndustryTrigger = React.createClass({displayName: 'CreatePressIndustryTrigger',
+  render: function() {
+    industries = _.map(Press.industries, function(ind) {
+      return (
+        React.createElement("label", {style: {width:200}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-id': ind.industry, value: ind.id}), " ", ind.industry
+        )
+      )
+    })
+
+    return (
+      React.createElement("div", {style: {fontFamily:"proxima-nova",fontWeight:400,fontSize:12}}, 
+        React.createElement("br", null), 
+        React.createElement("form", {id: "press-form-industries"}, 
+          industries
+        )
+      )
+    )
+  }
+})
+
+var CreateTriggerModal = React.createClass({displayName: 'CreateTriggerModal',
+  getInitialState: function() {
+    return {
+      signal: "HiringProfile",
+    }
+  },
+  componentDidMount: function() {
+    $(".modal-md").css({"font-family":"proxima-nova"})
+    $(".tab-content").css({"font-family":"proxima-nova"})
+
+    console.log(Press)
+  },
+
+  // closeModal
+  //
+  //
+  handleSelect: function(key) {
+    signal = ["", "HiringProfile","PressSubjectProfile","PressIndustryProfile"]
+    console.log(key)
+    console.log(signal[key])
+    this.setState({signal: signal[key]});
+    this.setState({key:key})
+  },
+
+  render: function() {
+    /* <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
+      <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane> */
+    return (
+      React.createElement(Modal, {show: this.props.showModal, 
+          dialogClassName: "create-signal-modal", 
+          onHide: this.props.closeModal, bsSize: "medium", 'aria-labelledby': "contained-modal-title-lg", style: {fontFamily:"proxima-nova !important", width:640}, bsStyle: {width:700}}, 
+        React.createElement(Modal.Header, {closeButton: true}, 
+          React.createElement(Modal.Title, {id: "contained-modal-title-lg"}, "Create Trigger")
+        ), 
+        React.createElement(Modal.Body, {bsStyle: {width:700}}, 
+          React.createElement("h5", null, "Enter Trigger Name"), 
+          React.createElement("input", {className: "form-control signal-name", placeholder: "Trigger Name"}), 
+          React.createElement("hr", null), 
+          React.createElement(TabbedArea, {activeKey: this.state.key, defaultActiveKey: 1, onSelect: this.handleSelect}, 
+            React.createElement(TabPane, {eventKey: 1, tab: "Hiring"}, React.createElement(CreateHiringTrigger, null)), 
+            React.createElement(TabPane, {eventKey: 2, tab: "Press"}, React.createElement(CreatePressSubjectTrigger, null)), 
+            React.createElement(TabPane, {eventKey: 3, tab: "Industry"}, React.createElement(CreatePressIndustryTrigger, null))
+          ), 
+          React.createElement("hr", null), 
+          React.createElement("h5", null, "Enter Employee Title Keyword"), 
+          React.createElement(CreateEmployeeTitleTrigger, null)
+        ), 
+        React.createElement(Modal.Footer, null, 
+          React.createElement(Button, {bsStyle: "primary", onClick: this.createSignal}, 
+            "Create Trigger")
+        )
+      )
+    )
+  },
+
+  createSignal: function() {
+    console.log("create signal")
+    console.log(this.state.signal)
+    var _this = this;
+    if(this.state.signal == "HiringProfile") {
+      values = $(".hiring-signal").val().split(",")
+      profile = {
+        "className": _this.state.signal,
+        "roles": values,
+        "locales": [],
+      }
+    } else if(this.state.signal == "PressSubjectProfile") {
+      values = $(".subject-item")
+      profile = {
+        "className": _this.state.signal,
+        "values": _.map($(".subject-item :checked"), function(s) {return $(s).data()["id"] }),
+        "ids": _.map($(".subject-item :checked"), function(s) {return $(s).val()}),
+      }
+    } else if(this.state.signal == "PressIndustryProfile") {
+      values = $(".industry-item")
+      profile = {
+        "className": _this.state.signal,
+        "values": _.map($(".industry-item :checked"), function(s) {return $(s).data()["id"] }),
+        "ids": _.map($(".industry-item :checked"),function(s){return $(s).val()}),
+      }
+    }
+
+    employee_titles = $(".employee-title").val().split(",")
+    data = {
+      name: $(".signal-name").val(),
+      profiles: [profile],
+      titles: employee_titles
+    }
+
+    this.props.addProfile(data)
+    console.log(data)
+    //this.props.closeModal()
+  },
+})
+
 module.exports = CreateTriggerModal
+
+});
+
+;require.register("current_plan", function(exports, require, module) {
+var CurrentPlan = React.createClass({displayName: 'CurrentPlan',
+  getInitialState: function() {
+    return {
+
+    }
+  },
+
+  componentDidMount: function() {
+    //$("#credit-card-form").validate()
+    var $messages = $('#error-message-wrapper');
+
+    $.validate({
+        form : '#credit-card-form',
+        errorMessagePosition: $messages,
+        showErrorDialogs : true
+    });
+
+    /*
+    $('.form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
+    */
+    /*
+    $(".floatlabel-wrapper").css({
+      width:"auto",
+      display:"inline-block"
+    })
+    */
+  },
+
+  submitForm: function(e) {
+    //e.preventDefault()
+    this.setState({planChosen: $("#choose-plan-form").val() != ""})
+    this.setState({billingCycleChosen: $("#billing-cycle-form").val() != ""})
+    console.log("lmao")
+  },
+
+  render: function() {
+    return (
+            React.createElement("div", {className: "panel panel-default"}, 
+              React.createElement("div", {className: "panel-body"}, 
+                React.createElement("h3", null, "Current Plan"), 
+                React.createElement("hr", null), 
+                React.createElement("h4", null, "1. Payment Information"), 
+
+        React.createElement("div", {id: "error-message-wrapper", 
+             className: "alert alert-info"}), 
+        React.createElement("form", {id: "credit-card-form", onSubmit: this.submitForm}, 
+                React.createElement("input", {type: "text", className: "form-control input-lg float", 'data-label': "lmao", placeholder: "Credit Card Number", style: {marginBottom:10}, 'data-validation': "required", 'data-validation': "number length", 'data-validation-length': "min16 max16"}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "MM", style: {marginBottom:5,width:"20%",display:"inline-block",marginRight:15}, 'data-validation': "required", 'data-validation': "number length", 'data-validation-length': "min2", min: "0", step: "1"}), 
+                React.createElement("h4", {style: {display:"inline"}}, " /    "), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "YY", style: {marginBottom:5,width:"20%",display:"inline-block"}, 'data-validation': "length number", 'data-validation-length': "min2", maxLength: "2", min: "0", max: "99", step: "1"}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "CVC", style: {marginBottom:5,width:"20%",display:"inline-block",float:"right"}, 'data-validation': "required", 'data-validation': "length number", 'data-validation-length': "min3", maxLength: "3", min: "0", step: "1"})
+        ), 
+                React.createElement("hr", null), 
+                React.createElement("h4", null, "2.  Select Your Plan"), 
+        (!!this.state.planChosen) ? React.createElement("div", {className: "alert alert-info"}, "Please choose value") : "", 
+        React.createElement("form", {id: "choose-plan-form", onSubmit: this.submitForm}, 
+          React.createElement("div", {className: "radio", style: {display:"none"}}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio1", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {htmlFor: "radio1", style: {width:"100%"}}, 
+              React.createElement("div", {style: {marginTop:-20,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Free Trial"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              )
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$0")
+          ), 
+          React.createElement("div", {className: "radio"}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio2", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {htmlFor: "radio2", style: {width:"100%"}}, 
+              React.createElement("div", {style: {marginTop:-20,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Starter"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$99")
+              )
+          ), 
+          React.createElement("div", {className: "radio"}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {htmlFor: "radio3", style: {width:"100%"}}, 
+              React.createElement("div", {style: {marginTop:-20,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Professional"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$499")
+              )
+          ), 
+          React.createElement("div", {className: "radio"}, 
+              React.createElement("br", null), 
+              React.createElement("input", {type: "radio", name: "radio2", id: "radio4", value: "option1", 
+                  style: {paddingTop:15}}), 
+              React.createElement("label", {htmlFor: "radio4", style: {width:"100%"}}, 
+              React.createElement("div", {style: {marginTop:-20,marginLeft:20}}, 
+                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Enterprise"), 
+                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
+              ), 
+              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$999")
+              )
+          )
+        ), 
+
+                React.createElement("hr", null), 
+          React.createElement("h4", null, "3. Select Billing Cycle"), 
+        (!!this.state.billingCycleChosen) ? React.createElement("div", {className: "alert alert-info"}, "Please choose value") : "", 
+              React.createElement("br", null), 
+              React.createElement("form", {role: "form", id: "billing-cycle-form"}, 
+                React.createElement("div", {className: "radio", style: {display:"inline"}}, 
+                    React.createElement("input", {type: "radio", name: "radio2", id: "radio17", value: "option1"}), 
+                    React.createElement("label", {htmlFor: "radio17"}, React.createElement("h5", {style: {marginTop:0}}, "Monthly "))
+                ), 
+                " " + ' ' +
+                " ", 
+                React.createElement("div", {className: "radio", style: {display:"inline"}}, 
+                    React.createElement("input", {type: "radio", name: "radio2", id: "radio19", value: "option2"}), 
+                    React.createElement("label", {hmtlFor: "radio19"}, 
+                        React.createElement("h5", {style: {marginTop:0}}, "Yearly  ", React.createElement("span", {style: {fontWeight:"bold",color:"#15cd72"}}, "-20 %")))
+                )
+              ), 
+  
+              React.createElement("br", null), 
+              React.createElement("br", null), 
+          React.createElement("a", {href: "javascript:", style: {display:"block",textAlign:"center",fontSize:16}, 
+              onClick: this.submitForm, 
+              className: "btn btn-lg btn-primary"}, 
+              "Complete and Upgrade"
+          )
+
+        )
+              )
+    )
+  }
+})
+
+module.exports = CurrentPlan
 
 });
 
@@ -1147,6 +1404,10 @@ var LandingPage = React.createClass({displayName: 'LandingPage',
   },
 
   componentDidMount: function() {
+    $('.form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
   },
 
   render: function() {
@@ -1166,9 +1427,9 @@ var LandingPage = React.createClass({displayName: 'LandingPage',
           React.createElement("hr", null), 
           React.createElement("h3", {style: {marginTop:10,fontWeight:100}}, "STOP WASTING TIME COLD CALLING "), 
           React.createElement("h3", {style: {marginTop:20,fontWeight:100}}, "START REACHING OUT AT ", React.createElement("span", {style: {fontStyle:"italic"}}, "THE RIGHT TIME")), 
-          React.createElement("input", {className: "form-control input-lg", style: {marginTop:30,width:300,borderRadius:2,fontSize:16}, placeholder: "EMAIL"}), 
-          React.createElement("input", {className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "PASSWORD", type: "password"}), 
-          React.createElement("input", {className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "CONFIRM PASSWORD", type: "password"}), 
+          React.createElement("input", {type: "text", className: "form-control input-lg", style: {marginTop:30,width:300,borderRadius:2,fontSize:16}, placeholder: "EMAIL"}), 
+          React.createElement("input", {type: "text", className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "PASSWORD", type: "password"}), 
+          React.createElement("input", {type: "text", className: "form-control input-lg", style: {marginTop:10,width:300,borderRadius:2,fontSize:16}, placeholder: "CONFIRM PASSWORD", type: "password"}), 
           React.createElement("a", {className: "btn btn-lg btn-success", style: {marginTop:10,width:150,fontSize:16}}, "SIGN UP")
         ), 
 
@@ -1194,9 +1455,11 @@ var Login = React.createClass({displayName: 'Login',
       url:location.origin+ "/login",
       data: {},
       dataType:"json",
+      // auth token: ""
       success: function(res) {
         console.log(res)
         location.currentUser(res.token)
+        // location.href="/#/signals"
       },
       error: function(err) {
         console.log(err)
@@ -1204,17 +1467,24 @@ var Login = React.createClass({displayName: 'Login',
     })
   },
 
+  componentDidMount: function() {
+    $('.login-form .form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
+  },
+
   render: function() {
     return (
-      React.createElement("div", {style: {textAlign:"center",paddingTop:120}}, 
-
+      React.createElement("div", {style: {width:320,textAlign:"center",paddingTop:120}, className: "col-md-2 col-md-offset-4  login-form"}, 
           React.createElement("img", {src: "images/radar_2.png", style: {height:100}}), 
           React.createElement("br", null), 
-        React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}, placeholder: "EMAIL"}), 
+        React.createElement("input", {type: "text", className: "form-control input-lg", style: {fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}, placeholder: "EMAIL"}), 
         React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginTop:10,marginLeft:"auto",marginRight:"auto",width:300,borderRadius:2}, placeholder: "PASSWORD", type: "password"}), 
         React.createElement("br", null), 
-        React.createElement("a", {className: "btn btn-lg btn-primary", style: {marginTop:10,width:300, fontSize:16}}, "LOG IN")
-
+        React.createElement("a", {className: "btn btn-lg btn-primary", 
+          onClick: this.loginUser, 
+          style: {marginTop:10,width:300, fontSize:16}}, "LOG IN")
       )
     )
   }
@@ -1241,7 +1511,7 @@ var Navbar = React.createClass({displayName: 'Navbar',
           React.createElement("li", {className: "app-logo", style: {marginLeft:0}, onClick: this.gotoHome}, 
             React.createElement("div", null, 
             React.createElement("img", {src: "images/blaze-logo.png", style: {marginTop:4,height:18,marginLeft:-15,display:"none"}}), 
-            React.createElement("div", {style: {}, style: {color:"#000"}}, " TriggerIQ")
+            React.createElement("div", {style: {}, style: {color:"#000"}}, " SignalIQ")
             )
           ), 
           React.createElement("div", {style: {display:"block"}}, 
@@ -1262,6 +1532,229 @@ var Navbar = React.createClass({displayName: 'Navbar',
 })
 
 module.exports = Navbar
+
+});
+
+;require.register("onboarding_modal", function(exports, require, module) {
+var TabbedArea = ReactBootstrap.TabbedArea
+var TabPane = ReactBootstrap.TabPane
+var SplitButton = ReactBootstrap.SplitButton
+var MenuItem= ReactBootstrap.SplitButton
+var Modal= ReactBootstrap.Modal
+var Button = ReactBootstrap.Button
+var Thumbnail= ReactBootstrap.Thumbnail
+var Nav= ReactBootstrap.Nav
+var NavItem= ReactBootstrap.NavItem
+
+var TwitterKeywords = require("search_bar")
+var SearchBar = require("search_bar")
+var Press = require("press")
+
+
+var OnboardingModal = React.createClass({displayName: 'OnboardingModal',
+  getInitialState: function() {
+   return {
+      signal: "HiringProfile",
+    }
+  },
+  handleSelect: function(key) {
+    this.setState({key:key})
+  },
+  componentDidMount: function() {
+    $(".onboarding nav").css({
+      "float":"left",
+      "width":"20%"
+    })
+    $(".onboarding .nav-pills a").css({
+      "width":"200px",
+    })
+
+  },
+  render: function() {
+    /* <TabPane eventKey={1} tab='Twitter'><CreateTwitterTrigger /></TabPane>
+      <TabPane eventKey={5} tab='News'><CreateIndustryTrigger /></TabPane> */
+    return (
+      React.createElement(Modal, {show: this.props.showModal, 
+          dialogClassName: "create-signal-modal", 
+          onHide: this.props.closeModal, bsSize: "lg", 'aria-labelledby': "contained-modal-title-lg"}, 
+        React.createElement(Modal.Header, {closeButton: true}, 
+          React.createElement(Modal.Title, {id: "contained-modal-title-lg"}, "Onboarding Modal")
+        ), 
+        React.createElement(Modal.Body, {modalClassName: "create-signal-modal-body", bsStyle: {width:700}}, 
+          React.createElement("div", {className: "onboarding"}, 
+          React.createElement(TabbedArea, {bsStyle: "pills", activeKey: this.state.key, defaultActiveKey: 1, onSelect: this.handleSelect, position: "left", stacked: true, style: {float:"left"}}, 
+            React.createElement(TabPane, {tabClassName: "onboarding-tab", eventKey: 1, tab: "1. Choose Titles"}, React.createElement(ChooseTitles, null)), 
+            React.createElement(TabPane, {tabClassName: "onboarding-tab", eventKey: 2, tab: "2. Choose Press Signals"}, React.createElement(CreatePressSubjectTrigger, null)), 
+            React.createElement(TabPane, {tabClassName: "onboarding-tab", eventKey: 3, tab: "3. Choose Industries"}, React.createElement(CreatePressIndustryTrigger, null)), 
+            React.createElement(TabPane, {tabClassName: "onboarding-tab", eventKey: 4, tab: "4. Choose Company Size"}, React.createElement(ChooseCompanySize, null))
+          )
+
+          ), 
+          React.createElement("br", null), 
+          React.createElement("br", null), 
+          React.createElement("br", null), 
+          React.createElement("br", null), 
+          React.createElement("br", null)
+
+        ), 
+        React.createElement(Modal.Footer, null, 
+          React.createElement(Button, {bsStyle: "primary", onClick: this.createSignal}, 
+            "Create Trigger")
+        )
+      )
+    )
+  },
+})
+
+var ChooseTitles = React.createClass({displayName: 'ChooseTitles',
+  componentDidMount: function() {
+    $('.profile-title').selectize({
+        delimiter: ',',
+        persist: false,
+        create: function(input) {
+            return {
+                value: input,
+                text: input
+            }
+        }
+    });
+  },
+  
+  render: function() {
+    return (
+      React.createElement("div", {style: {width:600,float:"right",fontFamily:"proxima-nova",paddingRight:20}}, 
+        React.createElement("h2", null, "Choose Titles"), 
+        React.createElement("hr", null), 
+        React.createElement("input", {className: "profile-title", placeholder: "Choose Titles"})
+      )
+    )
+  }
+})
+
+var CreatePressSubjectTrigger = React.createClass({displayName: 'CreatePressSubjectTrigger',
+  render: function() {
+    subjects = _.map(Press.subjects, function(sub) {
+      return (
+        React.createElement("label", {style: {width:200,fontWeight:400}, className: "subject-item"}, 
+          React.createElement("input", {type: "checkbox", className: "subject-check", 
+            'data-id': sub.subject, value: sub.id}), " ", sub.subject
+        )
+      )
+    })
+
+    return (
+      React.createElement("div", {style: {fontFamily:"proxima-nova",fontWeight:400,fontSize:12,
+            width:600,float:"right"}}, 
+        React.createElement("h2", null, " Choose Press Subjects"), 
+        React.createElement("br", null), " ", React.createElement("form", {id: "press-form-subjects"}, 
+          subjects
+        )
+      )
+    )
+  }
+})
+
+var CreatePressIndustryTrigger = React.createClass({displayName: 'CreatePressIndustryTrigger',
+  render: function() {
+    industries = _.map(Press.industries, function(ind) {
+      return (
+        React.createElement("label", {style: {width:200,fontWeight:400}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-id': ind.industry, value: ind.id}), " ", ind.industry
+        )
+      )
+    })
+
+    return (
+      React.createElement("div", {style: {fontFamily:"proxima-nova",fontWeight:400,fontSize:12, width:600,float:"right"}}, 
+        React.createElement("h2", null, " Choose Press Industries"), 
+        React.createElement("form", {id: "press-form-industries"}, 
+          industries
+        )
+      )
+    )
+  }
+})
+
+var ChooseCompanySize = React.createClass({displayName: 'ChooseCompanySize',
+  render: function() {
+    return (
+      React.createElement("div", {style: {width:500,float:"right",fontFamily:"proxima-nova"}}, 
+        React.createElement("h2", null, "Choose Company Size"), 
+        React.createElement("br", null), 
+        React.createElement("br", null), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 1, 'data-max': 1, value: "1"}), 
+            " ", 
+            "1 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 2, 'data-max': 10, value: "2-10"}), 
+            " ", 
+            "2-10 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 11, 'data-max': 50, value: "11-50"}), 
+            " ", 
+            "11-50 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 51, 'data-max': 200, value: "51-200"}), 
+            " ", 
+            "51-200 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 201, 'data-max': 500, value: "201-500"}), 
+            " ", 
+            "201-500 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 501, 'data-max': 1000, value: "501-1000"}), 
+            " ", 
+            "501-1000 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 1001, 'data-max': 5000, value: "1001-5000"}), 
+            " ", 
+            "1001-5000 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 5001, 'data-max': 10000, value: "5001-10,000"}), 
+            " ", 
+            "5001-10,000 employees"
+        ), 
+        React.createElement("label", {style: {width:200,fontWeight:400,fontFamily:"proxima-nova"}, className: "industry-item"}, 
+          React.createElement("input", {type: "checkbox", className: "industry-check", 
+            'data-min': 10000, 'data-max': 10000000, value: "10000+"}), 
+            " ", 
+            "10,000+ employees"
+        )
+      )
+
+    )
+  }
+})
+
+module.exports = OnboardingModal
+
+});
+
+;require.register("press", function(exports, require, module) {
+Press = {
+  industries: [{"industry": "Food and Beverage ", "id": "3821eeab-9310-412c-840e-3937713e94a9"}, {"industry": "Lifestyle and Leisure ", "id": "f0dcfbde-f3d7-4f88-8055-e01a96c6a152"}, {"industry": "Financial Services ", "id": "23b21ce8-cbb4-461c-be8c-839b5fa9b86d"}, {"industry": "Automotive ", "id": "36a3c04b-8064-41c4-a6a1-4a891c18e2a5"}, {"industry": "Retail ", "id": "66b7ad94-5321-4eb0-8a03-a8b8849562e2"}, {"industry": "Government ", "id": "d417ed5d-b23e-427d-86fb-af2cf0875e41"}, {"industry": "Sports ", "id": "dec2b92e-62a4-4ab2-837b-70913aa80a74"}, {"industry": "Manufacturing and Production ", "id": "2967f430-cc1e-48e4-ab68-cd922a5ca71b"}, {"industry": "Travel and Hospitality ", "id": "7ba9c27d-8631-4266-9521-4f508b35bc8a"}, {"industry": "Education and Training ", "id": "34603206-0ce7-4bb2-a8d0-68d44afa2b14"}, {"industry": "Aerospace and Defense", "id": "ff49e676-3cd2-4155-8624-11c382250e2a"}, {"industry": "Pharmaceuticals and Biotech ", "id": "3d9ae55d-9579-4001-8303-554347eca656"}, {"industry": "Environment ", "id": "d02d50f3-203f-48b1-a5df-cba49ef374c4"}, {"industry": "Energy and Utilities ", "id": "e7d79e8e-bf6c-40a4-b6a7-c004b09c9137"}, {"industry": "Real Estate and Construction ", "id": "080c44e2-d1f1-4b40-b7ac-cb3119619d75"}, {"industry": "Advertising", "id": "0e144156-6ff4-4f9f-ab33-802363c8343a"}, {"industry": "Agriculture ", "id": "1f97d3b3-eb08-4f6e-a94e-de1e491aa7f4"}, {"industry": "Union and Labour ", "id": "5b6ba9bd-c29a-4a47-8405-170165a05438"}, {"industry": "Transportation and Logistics ", "id": "dbfc603b-bdee-4b45-bf0b-b384ab6adcde"}, {"industry": "Chemicals", "id": "424ae9f6-5474-4721-a8fc-00965c9eb986"}, {"industry": "Computers and Software ", "id": "647963c3-3178-4f76-a234-9d6cf62d3791"}, {"industry": "Telecom ", "id": "9440c1d1-d51f-4e88-8785-c7f3b0c0ffa7"}, {"industry": "Medical and Healthcare ", "id": "acda5f97-c061-4d90-8234-845ec6559ad2"}, {"industry": "Media and Entertainment ", "id": "b3594a8c-b599-48d2-9622-1e0054d06511"}, {"industry": "Professional Services ", "id": "ce8572d7-f291-4d63-8104-4169f691ac6c"}, {"industry": "Electronics and Semiconductors ", "id": "e55dda98-39d7-4e58-8ca2-07e267cca6f7"}],
+
+  subjects: [{"id": "a12c0bc3-2dc2-4203-bcc6-257db9b62232", "subject": "Real Estate Transactions"}, {"id": "e289220c-97e0-4f0b-97a3-0dc8d87b7e29", "subject": "Revenue & Earnings"}, {"id": "6c764746-97d4-42a7-a78c-a012fb958829", "subject": "Litigations"}, {"id": "eeed90f5-5737-4830-b6b7-dda346622e21", "subject": "Mergers & Acquisitions"}, {"id": "1357c3e1-dcf2-4bc3-9cac-b73aa8235095", "subject": "Awards & Certifications"}, {"id": "03f3f24c-97db-4f90-89a9-51c1f1e30a02", "subject": "Personnel Changes"}, {"id": "70175346-06b6-4e50-8414-2ad3740fb87b", "subject": "New Offerings"}, {"id": "aa919a23-9f86-48fc-98b8-2008d9050376", "subject": "Funding & Development"}, {"id": "adb0e7b5-2a33-4d03-acaf-54a3565530b8", "subject": "Growth & Expansion"}, {"id": "9143b7ef-29bf-47b0-8f6e-6cac7186ed99", "subject": "Business Challenges"}, {"id": "7695f13c-0f79-498d-a4c7-5cc7e841c72f", "subject": "New Contracts"}]
+}
+
+module.exports = Press
 
 });
 
@@ -1375,116 +1868,40 @@ module.exports = PricingPanel
 ;require.register("profile", function(exports, require, module) {
 var Navbar = require("navbar")
 var PricingPanel = require("pricing_panel")
+var CurrentPlan = require("current_plan")
 
 var Profile = React.createClass({displayName: 'Profile',
+  componentDidMount: function() {
+    $('.billing-information .form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
+
+    $('.account-info .form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
+  },
+
   render: function() {
     return (
       React.createElement("div", null, 
         React.createElement(Navbar, null), 
         React.createElement("div", {className: "row"}, 
           React.createElement("div", {className: "col-md-6"}, 
-            React.createElement("div", {className: "panel panel-default"}, 
-              React.createElement("div", {className: "panel-body"}, 
-                React.createElement("h3", null, "Current Plan"), 
-                React.createElement("hr", null), 
-                React.createElement("h4", null, "1. Payment Information"), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "Credit Card Number", style: {marginBottom:10}}), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "MM", style: {marginBottom:5,width:"20%",display:"inline-block",marginRight:15}}), 
-                React.createElement("h4", {style: {display:"inline"}}, " /    "), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "YY", style: {marginBottom:5,width:"20%",display:"inline-block"}}), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "CVC", style: {marginBottom:5,width:"20%",display:"inline-block",float:"right"}}), 
-                React.createElement("hr", null), 
-                React.createElement("h4", null, "2.  Select Your Plan"), 
-        React.createElement("div", {className: "radio"}, 
-        React.createElement("form", {role: "form"}, 
-          React.createElement("div", {className: "radio"}, 
-              React.createElement("br", null), 
-              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
-                  style: {paddingTop:15}}), 
-              React.createElement("label", {for: "radio3"}
-              ), 
-              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
-                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Free Trial"), 
-                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
-              ), 
-              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$0")
-          ), 
-          React.createElement("div", {className: "radio"}, 
-              React.createElement("br", null), 
-              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
-                  style: {paddingTop:15}}), 
-              React.createElement("label", {for: "radio3"}
-              ), 
-              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
-                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Starter"), 
-                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
-              ), 
-              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$99")
-          ), 
-          React.createElement("div", {className: "radio"}, 
-              React.createElement("br", null), 
-              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
-                  style: {paddingTop:15}}), 
-              React.createElement("label", {for: "radio3"}
-              ), 
-              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
-                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Professional"), 
-                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
-              ), 
-              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$499")
-          ), 
-          React.createElement("div", {className: "radio"}, 
-              React.createElement("br", null), 
-              React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1", 
-                  style: {paddingTop:15}}), 
-              React.createElement("label", {for: "radio3"}
-              ), 
-              React.createElement("div", {style: {marginTop:-40,marginLeft:20}}, 
-                React.createElement("h4", {style: {fontWeight:800,marginBottom:0}}, "Enterprise"), 
-                React.createElement("h5", {style: {fontWeight:600,color:"#aaa",marginTop:4}}, "Free Trial")
-              ), 
-              React.createElement("h4", {style: {float:"right",marginTop:-40,marginRight:40}}, "$999")
-          )
-        ), 
-
-                React.createElement("hr", null), 
-          React.createElement("h4", null, "3. Select Billing Cycle"), 
-              React.createElement("br", null), 
-              React.createElement("form", {role: "form"}, 
-                React.createElement("div", {className: "radio", style: {display:"inline"}}, 
-                    React.createElement("input", {type: "radio", name: "radio2", id: "radio3", value: "option1"}), 
-                    React.createElement("label", {for: "radio3"}, React.createElement("h5", {style: {marginTop:0}}, "Monthly "))
-                ), 
-                " " + ' ' +
-                " ", 
-                React.createElement("div", {className: "radio", style: {display:"inline"}}, 
-                    React.createElement("input", {type: "radio", name: "radio2", id: "radio4", value: "option2"}), 
-                    React.createElement("label", {for: "radio4"}, React.createElement("h5", {style: {marginTop:0}}, "Yearly  ", React.createElement("span", {style: {fontWeight:"bold",color:"#15cd72"}}, "-20 %")))
-                )
-              ), 
-  
-              React.createElement("br", null), 
-              React.createElement("br", null), 
-          React.createElement("a", {href: "javascript:", style: {display:"block",textAlign:"center",fontSize:16}, 
-              className: "btn btn-lg btn-primary"}, 
-              "Complete and Upgrade"
-          )
-
-        )
-              )
-            )
+            React.createElement(CurrentPlan, null)
           ), 
           React.createElement("div", {className: "col-md-6"}, 
             React.createElement("div", {className: "panel panel-default"}, 
-              React.createElement("div", {className: "panel-body"}, 
+              React.createElement("div", {className: "panel-body billing-information"}, 
                 React.createElement("h3", null, "Billing Information"), 
                 React.createElement("hr", null), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "First Name", style: {marginBottom:10,width:"48.5%",display:"inline-block",marginRight:15}}), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "Last Name", style: {marginBottom:10,width:"48.5%",display:"inline-block"}}), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "Company", style: {marginBottom:10}}), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "Address", style: {marginBottom:5}}), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "Postal Code", style: {marginBottom:10,width:"48%",display:"inline-block",marginRight:15}}), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "City", style: {marginBottom:10,width:"48%",display:"inline-block"}}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "First Name", style: {marginBottom:10,display:"inline-block",marginRight:15}}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "Last Name", style: {marginBottom:10,display:"inline-block"}}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "Company", style: {marginBottom:10}}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "Address", style: {marginBottom:5}}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "Postal Code", style: {marginBottom:10,display:"inline-block",marginRight:15}}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "City", style: {marginBottom:10,display:"inline-block"}}), 
           React.createElement("br", null), 
           React.createElement("a", {href: "javascript:", style: {display:"block",textAlign:"center",fontSize:16}, 
               className: "btn btn-lg btn-primary"}, 
@@ -1503,10 +1920,10 @@ var Profile = React.createClass({displayName: 'Profile',
           ), 
           React.createElement("div", {className: "col-md-6"}, 
             React.createElement("div", {className: "panel panel-default"}, 
-              React.createElement("div", {className: "panel-body"}, 
+              React.createElement("div", {className: "panel-body account-info"}, 
                 React.createElement("h3", null, "My Account"), 
                 React.createElement("hr", null), 
-                React.createElement("input", {className: "form-control input-lg", placeholder: "Email", style: {marginBottom:10}}), 
+                React.createElement("input", {type: "text", className: "form-control input-lg", placeholder: "Email", style: {marginBottom:10}}), 
                 React.createElement("input", {className: "form-control input-lg", placeholder: "New Password", type: "password", style: {marginBottom:10}}), 
                 React.createElement("input", {className: "form-control input-lg", placeholder: "Confirm Password", type: "password", style: {marginBottom:10}}), 
                 React.createElement("a", {href: "javascript:", className: "btn btn-primary", style: {display:"block",fontSize:16}}, "Update Account")
@@ -1540,7 +1957,7 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
     var _this = this;
     profiles = _.map(this.props.profiles, function(profile) {
       return ( 
-              React.createElement("div", null, 
+        React.createElement("div", null, 
           React.createElement(HiringProfileCard, {profile: profile})
         )
        )
@@ -1551,7 +1968,6 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
             React.createElement("span", {style: {fontWeight:"800"}}, "TRIGGERS",  
               React.createElement("span", {style: {color:"#bbb",marginLeft:10,fontWeight:200}}, "(", this.props.profiles.length, ") ")
             ), 
-
             React.createElement("a", {href: "javascript:", 
                className: "btn btn-success btn-xs", 
                onClick: this.toggleCreateTriggerModal, 
@@ -1570,8 +1986,13 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
     return {
       company_count: "~",
       employee_count: "~",
-      hover: false
+      hover: false,
+      _id: this.props.profile.id
     }
+  },
+
+  gotoProfile: function() {
+    location.href="#signal/"+this.state._id
   },
 
   componentDidMount: function() {
@@ -1597,15 +2018,22 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
 
     var _this = this;
     channel.bind(_this.props.profile.id, function(data) {
-      //console.log(data)
       _this.setState({ "count" : data, "profile_last_updated": moment().unix()})
     });
 
-
-  },
-
-  gotoProfile: function() {
-    location.href="#signal/"+this.props.profile.id
+    if(this.props.profile.newProfile) {
+      $.ajax({
+        url: location.origin+"/profile",
+        dataType:"json",
+        type:"POST",
+        data: this.props.profile,
+        success: function(res) {
+          console.log(res)
+          _this.setState({_id: res.id})
+        },
+        error: function(err) { console.log(err) }
+      })
+    }
   },
 
   mouseOver: function() {
@@ -1628,7 +2056,30 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
       _style.backgroundColor="rgba(238,238,238,0.4)"
     }
 
+    console.log(this.props.profile)
     titles = (this.props.profile.titles) ? this.props.profile.titles.join(", ") : ""
+    locales = ""
+    if(this.props.profile.profiles[0].className == "HiringProfile") {
+      values = React.createElement("small", null, " ", React.createElement("i", {className: "fa fa-suitcase", style: {width:15}}), "  ", 
+            this.props.profile.profiles[0].roles.join(", "))
+      locales = React.createElement("small", null, 
+            (this.props.profile.locales) ? React.createElement("span", null, React.createElement("i", {className: "fa fa-map-marker", style: {width:15}}), "  ") : "", 
+            this.props.profile.profiles[0].locales.join(", "))
+    } else if(this.props.profile.profiles[0].className == "PressSubjectProfile") {
+      values = React.createElement("small", null, " ", React.createElement("i", {className: "fa fa-bullhorn", style: {width:15}}), "  ", 
+            this.props.profile.profiles[0].values.join(", "))
+    } else if(this.props.profile.profiles[0].className == "PressIndustryProfile") {
+      values = React.createElement("small", null, " ", React.createElement("i", {className: "fa fa-industry", style: {width:15}}), "  ", 
+            this.props.profile.profiles[0].values.join(", "))
+    }
+    console.log(this.props.profile)
+    if(this.props.profile.titles) {
+      _titles = React.createElement("small", null, 
+          (this.props.profile.titles) ? React.createElement("i", {className: "fa fa-user", style: {width:15}}) : "", 
+            titles)
+    } else { 
+      _titles = ""
+    }
 
     return (
       React.createElement("div", {style: _style, onMouseOver: this.mouseOver, onMouseOut: this.mouseOut, 
@@ -1644,19 +2095,13 @@ var HiringProfileCard = React.createClass({displayName: 'HiringProfileCard',
               this.state.employee_count)
         ), 
         React.createElement("h5", {style: {marginBottom:0,marginTop:5}}, 
-          React.createElement("small", null, 
-          React.createElement("i", {className: "fa fa-suitcase", style: {width:15}}), "  ", 
-            this.props.profile.profiles[0].roles.join(", "))
+          values
         ), 
         React.createElement("h5", {style: {marginBottom:0,marginTop:2}}, 
-          React.createElement("small", null, 
-            (this.props.profile.locales) ? React.createElement("span", null, React.createElement("i", {className: "fa fa-map-marker", style: {width:15}}), "  ") : "", 
-            this.props.profile.profiles[0].locales.join(", "))
+          locales
         ), 
         React.createElement("h5", {style: {marginBottom:0,marginTop:2}}, 
-          React.createElement("small", null, 
-          (this.props.profile.titles) ? React.createElement("i", {className: "fa fa-user", style: {width:15}}) : "", 
-            titles)
+          _titles
         )
       )
     )
@@ -1933,6 +2378,8 @@ var Profile = require("profile")
 var Navbar = require("navbar")
 var Dashboard = require("dashboard")
 var ProfileTimeline = require("profile_timeline")
+var CurrentPlan = require("current_plan")
+var OnboardingModal = require("onboarding_modal")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -1952,12 +2399,31 @@ var About = React.createClass({displayName: 'About',
   }
 });
 
+var FreeTrial = React.createClass({displayName: 'FreeTrial',
+  render: function () {
+    return (
+      React.createElement("div", null, 
+        React.createElement("div", {className: "col-md-offset-3 col-md-6"}, 
+          React.createElement("br", null), 
+          React.createElement("div", {style: {marginTop:30,fontSize:24,fontWeight:800,display:"block",textAlign:"center",color:"#4A90E2"}}, "SignalIQ"), 
+          React.createElement("br", null), 
+          React.createElement("div", {className: "", style: {display:"block",textAlign:"center",fontWeight:300,fontSize:17}}, 
+            "Please complete the form to continue using SignalIQ"
+          ), 
+          React.createElement("br", null), 
+          React.createElement("br", null), 
+          React.createElement(CurrentPlan, null)
+        )
+      )
+    )
+  }
+});
+
 var Inbox = React.createClass({displayName: 'Inbox',
   render: function () {
     return React.createElement("h2", null, "Inbox");
   }
 });
-
 
 var NewDatasetPanel = React.createClass({displayName: 'NewDatasetPanel',
   render: function() {
@@ -2021,18 +2487,85 @@ var NewDatasetPanel = React.createClass({displayName: 'NewDatasetPanel',
   }
 })
 
-// TODO: update to react 0.13.
 var App = React.createClass({displayName: 'App',
+  getInitialState: function() {
+    return {
+      authenticated: !!localStorage.currentUser
+    }
+  },
+
   render: function() {
-    return (
-      React.createElement("div", {className: "app"}, 
-        React.createElement("div", {className: "home-page"}
-        ), 
-        React.createElement("div", {className: "container"}, 
-        React.createElement(RouteHandler, null)
+    if(this.state.authenticated) {
+        location.href = "/#/signals"
+
+    } else  {
+      return (
+        React.createElement("div", {className: "app"}, 
+          React.createElement("div", {className: "home-page"}, " "), 
+          React.createElement("div", {className: "container"}, 
+            React.createElement(RouteHandler, null)
+          )
         )
       )
-    )
+    }
+  }
+});
+
+var AuthenticatedApp = React.createClass({displayName: 'AuthenticatedApp',
+  getInitialState: function() {
+    if(!localStorage.currentUser)
+        location.href = "/"
+
+    return {
+      authenticated: !localStorage.currentUser,
+      freeTrialOver:"not loaded"
+    }
+  },
+
+  componentWillMount: function() {
+
+    var _this = this;
+    $.ajax({
+      url: location.origin+"/trial",
+      dataType: "json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({freeTrialOver: res.days_left})
+      },
+      error: function(err) {
+
+      }
+    })
+
+    $.ajax({
+      url: location.origin+"/valid_token",
+      data: "",
+      success: function(res) {
+        // days left
+      },
+      error: function(err) {
+
+      }
+    })
+  },
+
+  render: function() {
+    if(this.state.authenticated) {
+        location.href = "/"
+
+    }  else if(!this.state.freeTrialOver) {
+        location.href = "/#/free_trial"
+
+    } else {
+        return (
+          React.createElement("div", {className: "app"}, 
+            React.createElement("div", {className: "home-page"}, " "), 
+            React.createElement("div", {className: "container"}, 
+              React.createElement(RouteHandler, null)
+            )
+          )
+        )
+    }
   }
 });
 
@@ -2186,6 +2719,8 @@ var Main = React.createClass({displayName: 'Main',
     else
       url = location.origin+"/triggers/"+this.state.page
 
+    //this.setState({triggers: [] })
+
     $.ajax({
       url: url,
       dataType:"json",
@@ -2266,6 +2801,25 @@ var Main = React.createClass({displayName: 'Main',
     location.href = "#/calendar/"+this.props.params.profile_id
   },
 
+  addProfile: function(profile) {
+    var _this = this;
+    this.setState({profiles: [profile].concat(_this.state.profiles)})
+
+    /*
+    $.ajax({
+      url:location.origin+"",
+      dataType:"json",
+      data: data,
+      success: function(res) {
+        console.log(res)
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+    */
+  },
+
   render: function() {
     var _this = this;
     //console.log(this.state)
@@ -2323,7 +2877,9 @@ var Main = React.createClass({displayName: 'Main',
 
             React.createElement("a", {href: "javascript:", className: "btn btn-success", style: {float:"right",marginTop:-90,display:"none"}}, "Create Trigger"), 
             React.createElement("br", null), 
+
             CompanyCards, 
+
             React.createElement("br", null), 
             (CompanyCards.length && this.state.paginating) ? React.createElement("div", {style: {textAlign:"center"}}, React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-sm"}, "LOADING")) : "", 
             React.createElement("br", null)
@@ -2333,12 +2889,15 @@ var Main = React.createClass({displayName: 'Main',
 
         React.createElement(CreateTriggerModal, {
             showModal: this.state.showCreateTriggerModal, 
+            addProfile: this.addProfile, 
+            closeModal: this.toggleCreateTriggerModal}), 
+        React.createElement(OnboardingModal, {
+            showModal: this.state.showCreateTriggerModal, 
             closeModal: this.toggleCreateTriggerModal}), 
         (this.state.detailMode) ?
           React.createElement(CompanyDetailOverlay, {
               toggleCompanyDetailOverlay: this.toggleCompanyDetailOverlay, 
               company: this.state.currentCompany}) : ""
-        
       )
     )
   }
@@ -2346,16 +2905,22 @@ var Main = React.createClass({displayName: 'Main',
 
 // declare our routes and their hierarchy
 var routes = (
-  React.createElement(Route, {handler: App}, 
-    React.createElement(Route, {path: "", handler: Main}), 
-    React.createElement(Route, {path: "landing", handler: LandingPage}), 
-    React.createElement(Route, {path: "login", handler: Login}), 
-    React.createElement(Route, {path: "signup", handler: Signup}), 
-    React.createElement(Route, {path: "dashboard", handler: Dashboard}), 
-    React.createElement(Route, {path: "pricing", handler: Pricing}), 
-    React.createElement(Route, {path: "profile", handler: Profile}), 
-    React.createElement(Route, {path: "/signal/:profile_id", handler: Main}), 
-    React.createElement(Route, {path: "/calendar/:profile_id", handler: ProfileTimeline})
+  React.createElement(Route, null, 
+    React.createElement(Route, {handler: App}, 
+      React.createElement(Route, {path: "", handler: LandingPage}), 
+      React.createElement(Route, {path: "login", handler: Login}), 
+      React.createElement(Route, {path: "signup", handler: Signup})
+    ), 
+
+    React.createElement(Route, {handler: AuthenticatedApp}, 
+      React.createElement(Route, {path: "signals", handler: Main}), 
+      React.createElement(Route, {path: "dashboard", handler: Dashboard}), 
+      React.createElement(Route, {path: "pricing", handler: Pricing}), 
+      React.createElement(Route, {path: "profile", handler: Profile}), 
+      React.createElement(Route, {path: "signal/:profile_id", handler: Main}), 
+      React.createElement(Route, {path: "calendar/:profile_id", handler: ProfileTimeline}), 
+      React.createElement(Route, {path: "free_trial", handler: FreeTrial})
+    )
   )
 );
 
@@ -2386,17 +2951,44 @@ module.exports = SearchBar
 
 ;require.register("signup", function(exports, require, module) {
 var Signup = React.createClass({displayName: 'Signup',
+  signupUser: function() {
+    data = {}
+    $.ajax({
+      url:location.origin+ "/login",
+      data: {},
+      dataType:"json",
+      // auth token: ""
+      success: function(res) {
+        console.log(res)
+        location.currentUser(res.token)
+        // location.href="/#/signals"
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+  },
+  
+  componentDidMount: function() {
+    $('.signup-form .form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
+  },
+
   render: function() {
     return (
-      React.createElement("div", {style: {textAlign:"center",paddingTop:120}}, 
+      React.createElement("div", {style: {width:320,textAlign:"center",paddingTop:120}, className: "signup-form col-md-2 col-md-offset-4 "}, 
 
           React.createElement("img", {src: "images/radar_2.png", style: {height:100}}), 
           React.createElement("br", null), 
-        React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}, placeholder: "EMAIL"}), 
+        React.createElement("input", {type: "text", 'data-label': "EMAIL", className: "form-control input-lg", style: {fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}, placeholder: "EMAIL"}), 
         React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginTop:10,marginLeft:"auto",marginRight:"auto",width:300,borderRadius:2}, placeholder: "PASSWORD", type: "password"}), 
         React.createElement("input", {className: "form-control input-lg", style: {fontSize:16, marginTop:10,marginLeft:"auto",marginRight:"auto",width:300,borderRadius:2}, placeholder: "CONFIRM PASSWORD", type: "password"}), 
         React.createElement("br", null), 
-        React.createElement("a", {className: "btn btn-lg btn-success", style: {marginTop:10,width:300, fontSize:16}}, "SIGN UP")
+        React.createElement("a", {className: "btn btn-lg btn-success", 
+          onClick: this.signupUser, 
+          style: {marginTop:10,width:300, fontSize:16}}, "SIGN UP")
 
       )
     )

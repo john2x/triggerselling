@@ -12,7 +12,7 @@ import time
 import bitmapist
 import math
 import os
-import grequests
+#import grequests
 import rethink_conn
 
 un, pw = "customero", "iUyET3ErxR"

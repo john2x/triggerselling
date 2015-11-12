@@ -194,7 +194,7 @@ def company_employees(_id):
 @app.route("/timeline/<profile_id>")
 #@require_appkey
 def profile_timeline(profile_id):
-    #conn = rethink_conn.conn()
+    conn = rethink_conn.conn()
     t = r.table("triggers").filter({"profile":profile_id})
     t = t.without(["company_domain_research_completed","employee_search_completed","emailhunter_search_completed"])
     t = t.run(conn)
@@ -263,6 +263,7 @@ def api_key_test():
     #key = user_id or jwt_token
     simmetrica.push('{0}:requests:used'.format(key))
     return make_response(json.dumps(data))
+
 
 @app.route('/lmao')
 def lol_test():

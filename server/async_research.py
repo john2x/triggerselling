@@ -62,11 +62,11 @@ class AsyncCompanyResearch:
     @tornado.gen.coroutine
     def emailhunter_response(self, response):
         conn = yield conn_future
+        print "EMAILHUNTER"
         data = EmailHunter()._parse_response(response.body)
-        print "emailhunter", response.code
-        yield r.table('triggers').get(_id).update(data).run(conn)
         ehsc = "emailhunter_search_completed"
-        t = r.table('triggers').filter({"domain": company["domain"]})
+        print data
+        t = r.table('triggers').filter({"domain": data["email_pattern"]["domain"]})
         t = yield t.coerce_to("array").run(conn)
         for i in t: 
             yield r.table("triggers").get(i["company_key"]).update(data).run(conn)
@@ -120,7 +120,8 @@ class AsyncCompanyResearch:
             url = url + "&" + urllib.urlencode(dict(zip(cols, args)))
             http_client.fetch(url, AsyncCompanyResearch().parse_employees)
 
-        for val in t3[t3.domain.notnull()].to_dict("r")[:100]:
+        t3 = t3[t3.domain.notnull()].drop_duplicates("domain")
+        for val in t3.to_dict("r")[:100]:
             #print "EMAILHUNTER EMP CRON"
             api_key = "493b454750ba86fd4bd6c2114238ef43696fce14"
             url = "http://api.emailhunter.co/v1/search?domain={0}&api_key={1}"

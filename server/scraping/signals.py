@@ -51,14 +51,10 @@ class Signals:
             for locale in profile["locales"]:
                 _args = [role, locale, _profile["id"], country]
                 print "THIS IS THE COUNTRY", country, locale
-                job_3 = q.enqueue(ZipRecruiter()._signal, *_args, timeout=6000)
-                job_0 = q.enqueue(Indeed()._cron, *_args, timeout=6000)
-                job_2 = q.enqueue(SimplyHired()._signal, *_args, timeout=6000)
+                dq.enqueue(ZipRecruiter()._signal, *_args, timeout=6000)
+                dq.enqueue(Indeed()._cron, *_args, timeout=6000)
+                dq.enqueue(SimplyHired()._signal, *_args, timeout=6000)
                 #job_1 = q.enqueue(Monster()._signal, *_args, timeout=6000)
-                """
-                for job in [job_0, job_1, job_2, job_3]:
-                    RQueue()._meta(job, profile_id)
-                """
 
                 '''
                 CareerBuilder()._search()
@@ -111,15 +107,14 @@ class Signals:
         for profile in profiles:
             _profile = [i["className"] for i in profile["profiles"]]
             #print _profile
-            print "DEPLOYBOT"
             if 'HiringProfile' in _profile: 
-                q.enqueue(Signals()._hiring, profile, timeout=6000)
+                dq.enqueue(Signals()._hiring, profile, timeout=6000)
             elif 'PressProfile' in _profile:
-                q.enqueue(Press()._daily_collect, profile, timeout=6000)
+                dq.enqueue(Press()._daily_collect, profile, timeout=6000)
             elif 'IndustryPressProfile' in _profile:
-                q.enqueue(Press()._daily_industry_collect, profile, timeout=6000)
+                dq.enqueue(Press()._daily_industry_collect, profile, timeout=6000)
             elif 'TwitterProfile' in _profile:
-                q.enqueue(Twitter()._daily_collect, profile.objectId, timeout=6000)
+                dq.enqueue(Twitter()._daily_collect, profile.objectId, timeout=6000)
 
     def _twitter_cron(self):
         ''' '''

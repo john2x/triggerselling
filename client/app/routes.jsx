@@ -14,6 +14,8 @@ var Profile = require("profile")
 var Navbar = require("navbar")
 var Dashboard = require("dashboard")
 var ProfileTimeline = require("profile_timeline")
+var CurrentPlan = require("current_plan")
+var OnboardingModal = require("onboarding_modal")
 
 var TabbedArea = ReactBootstrap.TabbedArea
 var TabPane = ReactBootstrap.TabPane
@@ -33,12 +35,31 @@ var About = React.createClass({
   }
 });
 
+var FreeTrial = React.createClass({
+  render: function () {
+    return (
+      <div>
+        <div className="col-md-offset-3 col-md-6">
+          <br/>
+          <div style={{marginTop:30,fontSize:24,fontWeight:800,display:"block",textAlign:"center",color:"#4A90E2"}}>SignalIQ</div>
+          <br/>
+          <div className="" style={{display:"block",textAlign:"center",fontWeight:300,fontSize:17}}>
+            Please complete the form to continue using SignalIQ
+          </div>
+          <br/>
+          <br/>
+          <CurrentPlan />
+        </div>
+      </div>
+    )
+  }
+});
+
 var Inbox = React.createClass({
   render: function () {
     return <h2>Inbox</h2>;
   }
 });
-
 
 var NewDatasetPanel = React.createClass({
   render: function() {
@@ -102,18 +123,85 @@ var NewDatasetPanel = React.createClass({
   }
 })
 
-// TODO: update to react 0.13.
 var App = React.createClass({
+  getInitialState: function() {
+    return {
+      authenticated: !!localStorage.currentUser
+    }
+  },
+
   render: function() {
-    return (
-      <div className="app" >
-        <div className="home-page">
+    if(this.state.authenticated) {
+        location.href = "/#/signals"
+
+    } else  {
+      return (
+        <div className="app" >
+          <div className="home-page"> </div>
+          <div className="container">
+            <RouteHandler/>
+          </div>
         </div>
-        <div className="container">
-        <RouteHandler/>
-        </div>
-      </div>
-    )
+      )
+    }
+  }
+});
+
+var AuthenticatedApp = React.createClass({
+  getInitialState: function() {
+    if(!localStorage.currentUser)
+        location.href = "/"
+
+    return {
+      authenticated: !localStorage.currentUser,
+      freeTrialOver:"not loaded"
+    }
+  },
+
+  componentWillMount: function() {
+
+    var _this = this;
+    $.ajax({
+      url: location.origin+"/trial",
+      dataType: "json",
+      success: function(res) {
+        console.log(res)
+        _this.setState({freeTrialOver: res.days_left})
+      },
+      error: function(err) {
+
+      }
+    })
+
+    $.ajax({
+      url: location.origin+"/valid_token",
+      data: "",
+      success: function(res) {
+        // days left
+      },
+      error: function(err) {
+
+      }
+    })
+  },
+
+  render: function() {
+    if(this.state.authenticated) {
+        location.href = "/"
+
+    }  else if(!this.state.freeTrialOver) {
+        location.href = "/#/free_trial"
+
+    } else {
+        return (
+          <div className="app" >
+            <div className="home-page"> </div>
+            <div className="container">
+              <RouteHandler/>
+            </div>
+          </div>
+        )
+    }
   }
 });
 
@@ -267,6 +355,8 @@ var Main = React.createClass({
     else
       url = location.origin+"/triggers/"+this.state.page
 
+    //this.setState({triggers: [] })
+
     $.ajax({
       url: url,
       dataType:"json",
@@ -347,6 +437,25 @@ var Main = React.createClass({
     location.href = "#/calendar/"+this.props.params.profile_id
   },
 
+  addProfile: function(profile) {
+    var _this = this;
+    this.setState({profiles: [profile].concat(_this.state.profiles)})
+
+    /*
+    $.ajax({
+      url:location.origin+"",
+      dataType:"json",
+      data: data,
+      success: function(res) {
+        console.log(res)
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
+    */
+  },
+
   render: function() {
     var _this = this;
     //console.log(this.state)
@@ -404,7 +513,9 @@ var Main = React.createClass({
 
             <a href="javascript:" className="btn btn-success" style={{float:"right",marginTop:-90,display:"none"}}>Create Trigger</a>
             <br/>
+
             {CompanyCards}
+
             <br/>
             {(CompanyCards.length && this.state.paginating) ? <div style={{textAlign:"center"}}><a href="javascript:" className="btn btn-primary btn-sm">LOADING</a></div> : ""}
             <br/>
@@ -414,12 +525,15 @@ var Main = React.createClass({
 
         <CreateTriggerModal 
             showModal={this.state.showCreateTriggerModal}
+            addProfile={this.addProfile}
+            closeModal={this.toggleCreateTriggerModal}/>
+        <OnboardingModal
+            showModal={this.state.showCreateTriggerModal}
             closeModal={this.toggleCreateTriggerModal}/>
         {(this.state.detailMode) ?
           <CompanyDetailOverlay 
               toggleCompanyDetailOverlay={this.toggleCompanyDetailOverlay}
-              company={this.state.currentCompany}/> : ""
-        }
+              company={this.state.currentCompany}/> : "" }
       </div>
     )
   }
@@ -427,16 +541,22 @@ var Main = React.createClass({
 
 // declare our routes and their hierarchy
 var routes = (
-  <Route handler={App}>
-    <Route path="" handler={Main}/>
-    <Route path="landing" handler={LandingPage}/>
-    <Route path="login" handler={Login}/>
-    <Route path="signup" handler={Signup}/>
-    <Route path="dashboard" handler={Dashboard}/>
-    <Route path="pricing" handler={Pricing}/>
-    <Route path="profile" handler={Profile}/>
-    <Route path="/signal/:profile_id" handler={Main}/>
-    <Route path="/calendar/:profile_id" handler={ProfileTimeline}/>
+  <Route >
+    <Route handler={App}>
+      <Route path="" handler={LandingPage}/>
+      <Route path="login" handler={Login}/>
+      <Route path="signup" handler={Signup}/>
+    </Route>
+
+    <Route handler={AuthenticatedApp}>
+      <Route path="signals" handler={Main}/>
+      <Route path="dashboard" handler={Dashboard}/>
+      <Route path="pricing" handler={Pricing}/>
+      <Route path="profile" handler={Profile}/>
+      <Route path="signal/:profile_id" handler={Main}/>
+      <Route path="calendar/:profile_id" handler={ProfileTimeline}/>
+      <Route path="free_trial" handler={FreeTrial}/>
+    </Route>
   </Route>
 );
 

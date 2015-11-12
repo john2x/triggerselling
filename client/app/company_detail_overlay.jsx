@@ -67,8 +67,10 @@ var CompanyDetailOverlay = React.createClass({
           </a>
           </div></h3>
         <h5 style={{width:"73%",overflow:"auto",height:45}}>{ci.description}</h5>
-        <input className="form-control input-sm" value={ci.domain} style={{width:300}}/>
-        <input className="form-control input-sm" value={company.email_pattern} style={{width:300}}/>
+        <div style={{display:"none"}}>
+          <input className="form-control input-sm" value={ci.domain} style={{width:300}}/>
+          <input className="form-control input-sm" value={company.email_pattern} style={{width:300}}/>
+        </div>
         <hr/>
         <div style={{height:"83%",overflow:"auto"}}>
           {employees}

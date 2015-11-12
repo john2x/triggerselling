@@ -13,6 +13,7 @@ from stats import Stats
 logging.basicConfig()
 from rq import Queue
 from worker import conn as _conn
+
 q = Queue("low", connection=_conn)
 dq = Queue("default", connection=_conn)
 hq = Queue("high", connection=_conn)
@@ -20,14 +21,13 @@ import rethink_conn
 sched = BlockingScheduler()
 p = pusher.Pusher( app_id='149760', key='f1141b13a2bc9aa3b519', secret='11723dad11b83473ab2f', ssl=True, port=443)
 
-@sched.scheduled_job('interval', seconds=1)
-def timed_job():
+@sched.scheduled_job('interval', seconds=5)
+def signals_schedule():
     print('signals job')
     try:
         Signals()._cron()
     except Exception as e:
         print e
-    #PressScrape()._start()
 
 """
 @sched.scheduled_job('interval', seconds=0.5)

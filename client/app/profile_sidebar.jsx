@@ -14,8 +14,8 @@ var ProfileSidebar = React.createClass({
     var _this = this;
     profiles = _.map(this.props.profiles, function(profile) {
       return ( 
-              <div >
-          <HiringProfileCard profile={profile}/>
+        <div >
+          <HiringProfileCard profile={profile} />
         </div>
        )
     })
@@ -25,7 +25,6 @@ var ProfileSidebar = React.createClass({
             <span style={{fontWeight:"800"}}>TRIGGERS 
               <span style={{color:"#bbb",marginLeft:10,fontWeight:200}}>({this.props.profiles.length}) </span>
             </span>
-
             <a href="javascript:" 
                className="btn btn-success btn-xs" 
                onClick={this.toggleCreateTriggerModal}
@@ -44,8 +43,13 @@ var HiringProfileCard = React.createClass({
     return {
       company_count: "~",
       employee_count: "~",
-      hover: false
+      hover: false,
+      _id: this.props.profile.id
     }
+  },
+
+  gotoProfile: function() {
+    location.href="#signal/"+this.state._id
   },
 
   componentDidMount: function() {
@@ -71,15 +75,22 @@ var HiringProfileCard = React.createClass({
 
     var _this = this;
     channel.bind(_this.props.profile.id, function(data) {
-      //console.log(data)
       _this.setState({ "count" : data, "profile_last_updated": moment().unix()})
     });
 
-
-  },
-
-  gotoProfile: function() {
-    location.href="#signal/"+this.props.profile.id
+    if(this.props.profile.newProfile) {
+      $.ajax({
+        url: location.origin+"/profile",
+        dataType:"json",
+        type:"POST",
+        data: this.props.profile,
+        success: function(res) {
+          console.log(res)
+          _this.setState({_id: res.id})
+        },
+        error: function(err) { console.log(err) }
+      })
+    }
   },
 
   mouseOver: function() {
@@ -102,7 +113,30 @@ var HiringProfileCard = React.createClass({
       _style.backgroundColor="rgba(238,238,238,0.4)"
     }
 
+    console.log(this.props.profile)
     titles = (this.props.profile.titles) ? this.props.profile.titles.join(", ") : ""
+    locales = ""
+    if(this.props.profile.profiles[0].className == "HiringProfile") {
+      values = <small> <i className="fa fa-suitcase" style={{width:15}}/> &nbsp;
+            {this.props.profile.profiles[0].roles.join(", ")}</small>
+      locales = <small>
+            {(this.props.profile.locales) ? <span><i className="fa fa-map-marker" style={{width:15}}/> &nbsp;</span> : ""}
+            {this.props.profile.profiles[0].locales.join(", ")}</small>
+    } else if(this.props.profile.profiles[0].className == "PressSubjectProfile") {
+      values = <small> <i className="fa fa-bullhorn" style={{width:15}}/> &nbsp;
+            {this.props.profile.profiles[0].values.join(", ")}</small>
+    } else if(this.props.profile.profiles[0].className == "PressIndustryProfile") {
+      values = <small> <i className="fa fa-industry" style={{width:15}}/> &nbsp;
+            {this.props.profile.profiles[0].values.join(", ")}</small>
+    }
+    console.log(this.props.profile)
+    if(this.props.profile.titles) {
+      _titles = <small>
+          {(this.props.profile.titles) ? <i className="fa fa-user" style={{width:15}}/> : "" }
+            {titles}</small>
+    } else { 
+      _titles = ""
+    }
 
     return (
       <div style={_style} onMouseOver={this.mouseOver} onMouseOut={this.mouseOut}
@@ -118,19 +152,13 @@ var HiringProfileCard = React.createClass({
               {this.state.employee_count}</small> 
         </h6>
         <h5 style={{marginBottom:0,marginTop:5}}>
-          <small>
-          <i className="fa fa-suitcase" style={{width:15}}/> &nbsp;
-            {this.props.profile.profiles[0].roles.join(", ")}</small>
+          {values}
         </h5>
         <h5 style={{marginBottom:0,marginTop:2}}>
-          <small>
-            {(this.props.profile.locales) ? <span><i className="fa fa-map-marker" style={{width:15}}/> &nbsp;</span> : ""}
-            {this.props.profile.profiles[0].locales.join(", ")}</small>
+          {locales}
         </h5>
         <h5 style={{marginBottom:0,marginTop:2}}>
-          <small>
-          {(this.props.profile.titles) ? <i className="fa fa-user" style={{width:15}}/> : "" }
-            {titles}</small>
+          {_titles}
         </h5>
       </div>
     )

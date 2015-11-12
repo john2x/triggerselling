@@ -5,9 +5,11 @@ var Login = React.createClass({
       url:location.origin+ "/login",
       data: {},
       dataType:"json",
+      // auth token: ""
       success: function(res) {
         console.log(res)
         location.currentUser(res.token)
+        // location.href="/#/signals"
       },
       error: function(err) {
         console.log(err)
@@ -15,17 +17,24 @@ var Login = React.createClass({
     })
   },
 
+  componentDidMount: function() {
+    $('.login-form .form-control').floatlabel({
+      labelClass:"floatingLabel",
+      labelEndTop :"5px"
+    });
+  },
+
   render: function() {
     return (
-      <div style={{textAlign:"center",paddingTop:120}}>
-
+      <div style={{width:320,textAlign:"center",paddingTop:120}} className="col-md-2 col-md-offset-4  login-form">
           <img src="images/radar_2.png" style={{height:100}}/>
           <br/>
-        <input className="form-control input-lg" style={{fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}} placeholder="EMAIL"/>
+        <input type="text" className="form-control input-lg" style={{fontSize:16, marginRight:"auto",marginLeft:"auto",marginTop:30,width:300,borderRadius:2}} placeholder="EMAIL"/>
         <input className="form-control input-lg" style={{fontSize:16, marginTop:10,marginLeft:"auto",marginRight:"auto",width:300,borderRadius:2}} placeholder="PASSWORD" type="password"/>
         <br/>
-        <a className="btn btn-lg btn-primary" style={{marginTop:10,width:300, fontSize:16}}>LOG IN</a>
-
+        <a className="btn btn-lg btn-primary" 
+          onClick={this.loginUser}
+          style={{marginTop:10,width:300, fontSize:16}}>LOG IN</a>
       </div>
     )
   }
