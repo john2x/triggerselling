@@ -126,7 +126,7 @@ def trigger_changes():
 
 #change_feed: python -u change_feed.py
 @gen.coroutine
-def email_pattern():
+def press_events():
     feed = yield r.table('press_events').changes().run(rethink_conn)
     while (yield feed.fetch_next()):
         change = yield feed.next()
@@ -171,8 +171,8 @@ if __name__ == "__main__":
     tornado.ioloop.IOLoop.current().add_callback(trigger_changes)
 
     scheduler = TornadoScheduler()
-    scheduler.add_job(AsyncCompanyNameResearch().start, 'interval', seconds=1)
-    scheduler.add_job(AsyncCompanyResearch().start, 'interval', seconds=10)
+    #scheduler.add_job(AsyncCompanyNameResearch().start, 'interval', seconds=1)
+    #scheduler.add_job(AsyncCompanyResearch().start, 'interval', seconds=10)
     scheduler.start()
 
     tornado.ioloop.IOLoop.current().start()

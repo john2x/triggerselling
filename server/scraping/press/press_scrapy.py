@@ -8,6 +8,7 @@ import feedparser
 import pandas as pd
 from fuzzywuzzy import fuzz, process
 from fuzzywuzzy import process
+from google import *
 import arrow
 from time import mktime
 #import newspaper
@@ -20,12 +21,21 @@ import arrow
 from time import mktime
 from datetime import datetime
 import redis
+import rethink_conn
+
+from rq import Queue
+from worker import conn as _conn
+
+q = Queue("low", connection=_conn)
+dq = Queue("default", connection=_conn)
+hq = Queue("high", connection=_conn)
 
 class PressScrape:
     def _start(self):
-        r = requests.get("http://www.prweb.com/rss.htm")
+        conn = rethink_conn.conn()
+        rr = requests.get("http://www.prweb.com/rss.htm")
         prweb_vals, prweb_sub = {}, {}
-        for i in BeautifulSoup(r.text).find("table").find_all("tr"):
+        for i in BeautifulSoup(rr.text).find("table").find_all("tr"):
             if "Business: " in i.find("td").text:
                 prweb_sub[i.find("td").text.split("Business: ")[-1]] = "http://www.prweb.com"+i.find_all("td")[1].find("a")["href"]
 
@@ -34,21 +44,22 @@ class PressScrape:
 
         #marketwired
         mw_vals, mw_sub = {}, {}
-        r = requests.get("http://www.marketwired.com/News_Room/rss_newsfeeds")
-        for row in BeautifulSoup(r.text).find_all("tr",{"class":"ByIndustry"}):
+        rr = requests.get("http://www.marketwired.com/News_Room/rss_newsfeeds")
+        for row in BeautifulSoup(rr.text).find_all("tr",{"class":"ByIndustry"}):
             mw_vals[row.find("a").text] = row.find_all("a")[1]["href"]
 
-        for row in BeautifulSoup(r.text).find_all("tr",{"class":"BySubject"}):
+        for row in BeautifulSoup(rr.text).find_all("tr",{"class":"BySubject"}):
             name = row.find("td").text.strip()
             url = row.find_all("a")[1]["href"].split("rss?url=")[-1]
             url = urllib.unquote_plus(url)
             mw_sub[name.split("\t")[-1]] = url
 
         # prnewswire
-        r = requests.get("http://www.prnewswire.com/rss/")
+        #rr = requests.get("http://www.prnewswire.com/rss/")
+        rr = Crawlera().get("http://www.prnewswire.com/rss/")
         pnw_vals, pnw_sub = {}, {}
         found = False
-        for row in BeautifulSoup(r.text).find_all("tr"):
+        for row in BeautifulSoup(rr.text).find_all("tr"):
             if row.find("th"):
                 found = "Industry" in row.find("th").text
 
@@ -61,16 +72,16 @@ class PressScrape:
                     pnw_vals[row.find("a").text] = link.strip()
 
         # BusinessWire
-        r = requests.get("http://www.businesswire.com/portal/site/home/news/industries/")
+        rr = requests.get("http://www.businesswire.com/portal/site/home/news/industries/")
         bw_vals, bw_sub = {}, {}
-        for tr in BeautifulSoup(r.text).find("table",{"id":"newsbyIndustry"}).find_all("tr"):
+        for tr in BeautifulSoup(rr.text).find("table",{"id":"newsbyIndustry"}).find_all("tr"):
             link = tr.find("td",{"class":"rss"}).find("a")["href"]
             name = tr.find("a").text
             bw_vals[name] = link
 
-        r = requests.get("http://www.businesswire.com/portal/site/home/news/subjects/")
+        rr = requests.get("http://www.businesswire.com/portal/site/home/news/subjects/")
 
-        for tr in BeautifulSoup(r.text).find("table",{"id":"newsbySubject"}).find_all("tr"):
+        for tr in BeautifulSoup(rr.text).find("table",{"id":"newsbySubject"}).find_all("tr"):
             link = tr.find("td",{"class":"rss"}).find("a")["href"]
             name = tr.find("a").text
             bw_sub[name] = link

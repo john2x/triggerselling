@@ -24,10 +24,13 @@ p = pusher.Pusher( app_id='149760', key='f1141b13a2bc9aa3b519', secret='11723dad
 @sched.scheduled_job('interval', seconds=5)
 def signals_schedule():
     print('signals job')
+    """
     try:
         Signals()._cron()
     except Exception as e:
         print e
+    """
+    PressScrape()._start()
 
 """
 @sched.scheduled_job('interval', seconds=0.5)
