@@ -48,7 +48,7 @@ p = pusher.Pusher(
 
 @gen.coroutine
 def company_name_to_domain_changes():
-    conn = yield r.connect(**rethink_conn.args())
+    conn = yield rethink_conn.conn()
     #feed = yield r.table('hiring_signals').changes().run(rethink_conn)
     feed = yield r.table('company_domain_research').changes().run(conn)
     while (yield feed.fetch_next()):
