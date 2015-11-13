@@ -50,13 +50,12 @@ var TimelineCard = React.createClass({
 
 
                     <td style={{width:"33%"}}>
-                      <h3>
-                        <i className="fa fa-building" />&nbsp;
+                      <h3> <i className="fa fa-building" />&nbsp;
                         {this.props.day.cos.length}
                       </h3>
                       <a href="javascript:" className="btn btn-primary btn-xs"
-                          onClick={this.downloadCompanies}
-                          style={{float:"left",marginTop:-39,marginLeft:90,fontSize:10,padding:5,paddingLeft:15,paddingRight:15,paddingTop:7}}>
+                         onClick={this.downloadCompanies}
+                         style={{float:"left",marginTop:-39,marginLeft:90,fontSize:10,padding:5,paddingLeft:15,paddingRight:15,paddingTop:7}}>
                         <i className="fa fa-download"/>
                         &nbsp;
                         DOWNLOAD

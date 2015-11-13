@@ -10,7 +10,7 @@ var ProfileSidebar = React.createClass({
   },
 
   render: function() {
-    console.log(this.props.profiles)
+    //console.log(this.props.profiles)
     var _this = this;
     profiles = _.map(this.props.profiles, function(profile) {
       return ( 

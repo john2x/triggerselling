@@ -40,7 +40,7 @@ Auth(app)
 # - figure out how to make press signals work with counts
 # - integrations
 # - onboarding modal
-conn = rethink_conn.conn()
+#conn = rethink_conn.conn()
 
 @app.route("/test_1")
 @jwt_required()

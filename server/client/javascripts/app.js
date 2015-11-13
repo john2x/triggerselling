@@ -147,14 +147,8 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
   componentDidMount: function() {
   },
 
-  mouseOver: function() {
-    console.log("")
-    this.setState({hover: true})
-  },
-
-  mouseLeave: function() {
-    this.setState({hover: false})
-  },
+  mouseOver: function() { this.setState({hover: true}) },
+  mouseLeave: function() { this.setState({hover: false}) },
 
   openLink: function() {
     window.open()
@@ -167,11 +161,12 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
     if(this.state.hover)
       hoverStyle.backgroundColor ="rgba(0,0,0,0.03)"
 
-    company_info.metrics = (company_info.metrics) ? company_info.metrics : {}
-    company_info.geo = (company_info.geo) ? company_info.geo : {}
+    company_info.metrics = (!!company_info.metrics) ? company_info.metrics : {}
+    company_info.geo = (!!company_info.geo) ? company_info.geo : {}
+
     return (
       React.createElement("div", {className: "", 
-            onMouseOver: this.mouseOver, 
+            onMouseEnter: this.mouseOver, 
             onMouseLeave: this.mouseLeave, 
             onClick: this.toggleCompanyDetailOverlay, 
             style: hoverStyle}, 
@@ -1953,7 +1948,7 @@ var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
   },
 
   render: function() {
-    console.log(this.props.profiles)
+    //console.log(this.props.profiles)
     var _this = this;
     profiles = _.map(this.props.profiles, function(profile) {
       return ( 
@@ -2193,13 +2188,12 @@ var TimelineCard = React.createClass({displayName: 'TimelineCard',
 
 
                     React.createElement("td", {style: {width:"33%"}}, 
-                      React.createElement("h3", null, 
-                        React.createElement("i", {className: "fa fa-building"}), " ", 
+                      React.createElement("h3", null, " ", React.createElement("i", {className: "fa fa-building"}), " ", 
                         this.props.day.cos.length
                       ), 
                       React.createElement("a", {href: "javascript:", className: "btn btn-primary btn-xs", 
-                          onClick: this.downloadCompanies, 
-                          style: {float:"left",marginTop:-39,marginLeft:90,fontSize:10,padding:5,paddingLeft:15,paddingRight:15,paddingTop:7}}, 
+                         onClick: this.downloadCompanies, 
+                         style: {float:"left",marginTop:-39,marginLeft:90,fontSize:10,padding:5,paddingLeft:15,paddingRight:15,paddingTop:7}}, 
                         React.createElement("i", {className: "fa fa-download"}), 
                         " " + ' ' +
                         "DOWNLOAD"

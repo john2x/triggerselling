@@ -13,14 +13,8 @@ var CompanyCard = React.createClass({
   componentDidMount: function() {
   },
 
-  mouseOver: function() {
-    console.log("")
-    this.setState({hover: true})
-  },
-
-  mouseLeave: function() {
-    this.setState({hover: false})
-  },
+  mouseOver: function() { this.setState({hover: true}) },
+  mouseLeave: function() { this.setState({hover: false}) },
 
   openLink: function() {
     window.open()
@@ -33,11 +27,12 @@ var CompanyCard = React.createClass({
     if(this.state.hover)
       hoverStyle.backgroundColor ="rgba(0,0,0,0.03)"
 
-    company_info.metrics = (company_info.metrics) ? company_info.metrics : {}
-    company_info.geo = (company_info.geo) ? company_info.geo : {}
+    company_info.metrics = (!!company_info.metrics) ? company_info.metrics : {}
+    company_info.geo = (!!company_info.geo) ? company_info.geo : {}
+
     return (
       <div className="" 
-            onMouseOver={this.mouseOver}
+            onMouseEnter={this.mouseOver}
             onMouseLeave={this.mouseLeave}
             onClick={this.toggleCompanyDetailOverlay}
             style={hoverStyle}>

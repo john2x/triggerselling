@@ -21,23 +21,23 @@ import rethink_conn
 sched = BlockingScheduler()
 p = pusher.Pusher( app_id='149760', key='f1141b13a2bc9aa3b519', secret='11723dad11b83473ab2f', ssl=True, port=443)
 
-@sched.scheduled_job('interval', seconds=5)
+@sched.scheduled_job('interval', seconds=50)
 def signals_schedule():
     print('signals job')
+    """
     try:
         Signals()._cron()
     except Exception as e:
         print e
-    PressScrape()._start()
+    """
+    Signals()._cron()
 
-@sched.scheduled_job('interval', seconds=1)
+@sched.scheduled_job('interval', seconds=100)
 def press():
-    print('signals job')
-    conn = rethink_conn.conn()
-    
+    print('press job')
+    #PressScrape()._start()
     # adding press_events to profile
     # add press_events with profile to async cron
-
 
 @sched.scheduled_job('cron', day_of_week='mon-fri', hour=17)
 def scheduled_job():

@@ -64,7 +64,8 @@ class AsyncCompanyResearch:
     @tornado.gen.coroutine
     def emailhunter_response(self, response):
         conn = yield conn_future
-        print "EMAILHUNTER"
+        print "EMAILHUNTER", response.code
+        if response.code != 200: return
         data = EmailHunter()._parse_response(response.body)
         ehsc = "emailhunter_search_completed"
         print data

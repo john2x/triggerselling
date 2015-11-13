@@ -136,7 +136,7 @@ class PressScrape:
         data["rss_url"] = url
         if "published_parsed" in data.columns:
             ar = [arrow.get(datetime.fromtimestamp(mktime(i))).timestamp 
-                                 for i in data.published_parsed]
+                  for i in data.published_parsed]
             data["timestamp"] = ar
             del data["published_parsed"]
         #print data.ix[0]
