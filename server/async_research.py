@@ -65,7 +65,9 @@ class AsyncCompanyResearch:
     def emailhunter_response(self, response):
         conn = yield conn_future
         print "EMAILHUNTER", response.code
-        if response.code != 200: return
+        if response.code != 200: 
+            print response.text
+            return
         data = EmailHunter()._parse_response(response.body)
         ehsc = "emailhunter_search_completed"
         print data
@@ -75,31 +77,15 @@ class AsyncCompanyResearch:
             yield r.table("triggers").get(i["company_key"]).update(data).run(conn)
 
     @tornado.gen.coroutine
-    def start(self):
+    def start_company_info_research(self):
         #print "started"
         conn = yield conn_future
-        triggers = r.table("triggers").eq_join("profile",r.table("prospect_profiles"))
-        triggers = yield triggers.zip().coerce_to("array").run(conn)
-        triggers = pd.DataFrame(triggers)
-        triggers = triggers.sort("createdAt",ascending=False)#.to_dict("r")
         cdrc = "company_domain_research_completed"
-        epsc = "employee_search_completed"
-        ehsc = "emailhunter_search_completed"
-
-        t1, t2, t3 = triggers, triggers, triggers
-        if cdrc in triggers.columns:
-            t1 = triggers[triggers[cdrc].isnull()]
-
-        if epsc in triggers.columns:
-            t2 = triggers[triggers[epsc].isnull()]
-
-        if ehsc in triggers.columns:
-            t3 = triggers[triggers[ehsc].isnull()]
-
-
+        triggers = yield r.table("triggers").filter(~r.row.has_fields(cdrc)).coerce_to("array").run(conn)
+        triggers = pd.DataFrame(triggers)
+        triggers = triggers.sort_values("createdAt",ascending=False)#.to_dict("r")
+        t1 = triggers
         print t1[t1.domain.notnull()].shape
-        print t2[t2.domain.notnull()].shape
-        print t3[t3.domain.notnull()].shape
 
         for val in t1[t1.domain.notnull()].to_dict("r")[:100]:
             #print "CLEARBIT EMP CRON"
@@ -109,6 +95,16 @@ class AsyncCompanyResearch:
             url = url.format(api_key, val["domain"], args)
             http_client.fetch(url, AsyncCompanyResearch().clearbit_response)
 
+    @tornado.gen.coroutine
+    def start_employee_research(self):
+        conn = yield conn_future
+        epsc = "employee_search_completed"
+        triggers = r.table("triggers").filter(~r.row.has_fields(epsc)).eq_join("profile",r.table("prospect_profiles"))
+        triggers = yield triggers.zip().coerce_to("array").run(conn)
+        triggers = pd.DataFrame(triggers)
+        triggers = triggers.sort_values("createdAt",ascending=False)#.to_dict("r")
+        t2 = triggers
+        print t2[t2.domain.notnull()].shape
         for val in t2.to_dict("r")[:100]:
             #print "GOOGLE EMP CRON"
             if "titles" in val.keys(): val["titles"] = [None]
@@ -123,11 +119,23 @@ class AsyncCompanyResearch:
             url = url + "&" + urllib.urlencode(dict(zip(cols, args)))
             http_client.fetch(url, AsyncCompanyResearch().parse_employees)
 
+    @tornado.gen.coroutine
+    def start_email_pattern_research(self):
+        #print "started"
+        conn = yield conn_future
+        ehsc = "emailhunter_search_completed"
+        triggers = yield r.table("triggers").filter(~r.row.has_fields(ehsc)).coerce_to("array").run(conn)
+        triggers = pd.DataFrame(triggers)
+        triggers = triggers.sort_values("createdAt",ascending=False)#.to_dict("r")
+        t3 = triggers
+
+        print t3[t3.domain.notnull()].shape
+
         t3 = t3[t3.domain.notnull()].drop_duplicates("domain")
         for val in t3.to_dict("r")[:100]:
             #print "EMAILHUNTER EMP CRON"
             api_key = "493b454750ba86fd4bd6c2114238ef43696fce14"
-            url = "http://api.emailhunter.co/v1/search?domain={0}&api_key={1}"
+            url = "https://api.emailhunter.co/v1/search?domain={0}&api_key={1}"
             url = url.format(val["domain"], api_key)
             http_client.fetch(url, AsyncCompanyResearch().emailhunter_response)
 

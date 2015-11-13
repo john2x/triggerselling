@@ -1,12 +1,12 @@
 var ProfileSidebar = React.createClass({
 
   toggleCreateTriggerModal: function() {
-    console.log(this.props.profiles)
+    //console.log(this.props.profiles)
     this.props.toggleCreateTriggerModal()
   },
 
   profileHover: function() {
-    console.log("hover")
+    //console.log("hover")
   },
 
   render: function() {
@@ -113,7 +113,7 @@ var HiringProfileCard = React.createClass({
       _style.backgroundColor="rgba(238,238,238,0.4)"
     }
 
-    console.log(this.props.profile)
+    //console.log(this.props.profile)
     titles = (this.props.profile.titles) ? this.props.profile.titles.join(", ") : ""
     locales = ""
     if(this.props.profile.profiles[0].className == "HiringProfile") {
@@ -129,7 +129,7 @@ var HiringProfileCard = React.createClass({
       values = <small> <i className="fa fa-industry" style={{width:15}}/> &nbsp;
             {this.props.profile.profiles[0].values.join(", ")}</small>
     }
-    console.log(this.props.profile)
+    //console.log(this.props.profile)
     if(this.props.profile.titles) {
       _titles = <small>
           {(this.props.profile.titles) ? <i className="fa fa-user" style={{width:15}}/> : "" }

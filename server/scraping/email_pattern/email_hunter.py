@@ -42,15 +42,15 @@ class EmailHunter:
         #print ep.keys()
         if "pattern" in ep.keys():
             del ep["emails"]
-            if ep["pattern"] == "none":
-                ep["stache"] = None
-                ep["pattern"] = None
-            else:
+            if ep["pattern"]:
                 data = {"first":"{{first}}","last":"{{last}}"}
                 data["f"] = "{{first_initial}}"
                 data["l"] = "{{last_initial}}"
                 ep["stache"] = ep["pattern"].format(**data)
                 ep["stache"] = ep["stache"]+"@{{domain}}"
+            else:
+                ep["stache"] = None
+                ep["pattern"] = None
         else:
             ep = None
         data = {"email_pattern":ep, "emailhunter_search_completed": r.now()}

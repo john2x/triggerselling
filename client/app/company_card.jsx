@@ -23,12 +23,15 @@ var CompanyCard = React.createClass({
   render: function() {
     if(this.props.company_info.length)
       company_info = JSON.parse(this.props.company_info)
+    else 
+      company_info = {}
     hoverStyle = {borderRadius: 5, paddingLeft:10, paddingRight:10, cursor:"pointer"}
     if(this.state.hover)
       hoverStyle.backgroundColor ="rgba(0,0,0,0.03)"
 
     company_info.metrics = (!!company_info.metrics) ? company_info.metrics : {}
     company_info.geo = (!!company_info.geo) ? company_info.geo : {}
+    company_info.geo = {city: ""}
 
     return (
       <div className="" 

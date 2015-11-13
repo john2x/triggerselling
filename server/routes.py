@@ -12,6 +12,7 @@ from scraping.company_api.company_name_to_domain import CompanyNameToDomain
 from scraping.email_pattern.email_hunter import EmailHunter
 from scraping.email_pattern.clearbit_search import ClearbitSearch
 from scraping.employee_search.employee_search import GoogleEmployeeSearch
+from scraping.job_board.zip_recruiter import *
 import logging
 import sys
 import arrow
@@ -268,6 +269,11 @@ def api_key_test():
 @app.route('/lmao')
 def lol_test():
     data = {"test":"lmao"}
+    return make_response(json.dumps(data))
+
+@app.route('/zip')
+def zip_test():
+    data = ZipRecruiter()._signal("sales", None, "")
     return make_response(json.dumps(data))
 
 @app.route('/protected')

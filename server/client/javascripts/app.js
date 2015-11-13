@@ -157,12 +157,15 @@ var CompanyCard = React.createClass({displayName: 'CompanyCard',
   render: function() {
     if(this.props.company_info.length)
       company_info = JSON.parse(this.props.company_info)
+    else 
+      company_info = {}
     hoverStyle = {borderRadius: 5, paddingLeft:10, paddingRight:10, cursor:"pointer"}
     if(this.state.hover)
       hoverStyle.backgroundColor ="rgba(0,0,0,0.03)"
 
     company_info.metrics = (!!company_info.metrics) ? company_info.metrics : {}
     company_info.geo = (!!company_info.geo) ? company_info.geo : {}
+    company_info.geo = {city: ""}
 
     return (
       React.createElement("div", {className: "", 
@@ -1939,7 +1942,7 @@ module.exports = Profile
 var ProfileSidebar = React.createClass({displayName: 'ProfileSidebar',
 
   toggleCreateTriggerModal: function() {
-    console.log(this.props.profiles)
+    //console.log(this.props.profiles)
     this.props.toggleCreateTriggerModal()
   },
 

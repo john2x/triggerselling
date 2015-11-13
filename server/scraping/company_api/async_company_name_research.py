@@ -34,7 +34,7 @@ class AsyncCompanyNameResearch:
         triggers = pd.DataFrame(triggers).drop_duplicates("company_name")
         if "domain" in triggers.columns:
             triggers = triggers[triggers.domain.isnull()]
-        triggers = triggers.sort("createdAt",ascending=False)
+        triggers = triggers.sort_values("createdAt",ascending=False)
         for i, trigger in triggers.head(50).iterrows():
             if trigger["company_name"] == 100: continue
             for url in CompanyNameToDomain()._make_urls(trigger["company_name"]):
